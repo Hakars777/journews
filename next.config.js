@@ -64,8 +64,6 @@ const nextConfig = {
   images: {
     domains: [],
     remotePatterns,
-    // Hostinger returns 400 for runtime optimization of newly uploaded local images.
-    unoptimized: true,
   },
   webpack(config, { isServer, dev }) {
     if (isServer && !dev) {
