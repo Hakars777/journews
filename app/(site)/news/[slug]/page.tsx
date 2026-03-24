@@ -27,51 +27,55 @@ function toIsoDateTime(value: Date | string | null | undefined) {
 
 const getNewsPageData = unstable_cache(
   async (slug: string) => {
-    const news = await prisma.news.findFirst({
-      where: { slug, status: "PUBLISHED", publishedAt: { not: null } },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        lead: true,
-        contentHtml: true,
-        coverImage: true,
-        galleryImages: true,
-        publishedAt: true,
-        sourceName: true,
-        sourceUrl: true,
-        category: { select: { name: true, slug: true } },
-        author: { select: { name: true, slug: true } },
-        tags: { select: { tag: { select: { id: true, name: true, slug: true } } } },
-      },
-    });
-
-    if (!news) return null;
-
-    const similar = await prisma.news.findMany({
-      where: {
-        status: "PUBLISHED",
-        publishedAt: { not: null },
-        category: { slug: news.category.slug },
-        NOT: { id: news.id },
-      },
-      orderBy: { publishedAt: "desc" },
-      take: 6,
-      select: { id: true, slug: true, title: true, publishedAt: true },
-    });
-
-    return { news, similar };
+    return fetchNewsPageData(slug);
   },
   ["news-page"],
   { revalidate: 300 },
 );
+
+async function fetchNewsPageData(slug: string) {
+  const news = await prisma.news.findFirst({
+    where: { slug, status: "PUBLISHED", publishedAt: { not: null } },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      lead: true,
+      contentHtml: true,
+      coverImage: true,
+      galleryImages: true,
+      publishedAt: true,
+      sourceName: true,
+      sourceUrl: true,
+      category: { select: { name: true, slug: true } },
+      author: { select: { name: true, slug: true } },
+      tags: { select: { tag: { select: { id: true, name: true, slug: true } } } },
+    },
+  });
+
+  if (!news) return null;
+
+  const similar = await prisma.news.findMany({
+    where: {
+      status: "PUBLISHED",
+      publishedAt: { not: null },
+      ...(news.category ? { category: { slug: news.category.slug } } : {}),
+      NOT: { id: news.id },
+    },
+    orderBy: { publishedAt: "desc" },
+    take: 6,
+    select: { id: true, slug: true, title: true, publishedAt: true },
+  });
+
+  return { news, similar };
+}
 
 export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const data = await getNewsPageData(params.slug);
+  const data = await getNewsPageData(decodeURIComponent(params.slug));
   if (!data) return { title: "Новость не найдена" };
 
   const { news } = data;
@@ -102,7 +106,8 @@ export async function generateMetadata({
 }
 
 export default async function NewsPage({ params }: { params: { slug: string } }) {
-  const data = await getNewsPageData(params.slug);
+  const slug = decodeURIComponent(params.slug);
+  const data = await getNewsPageData(slug);
   if (!data) notFound();
 
   const { news, similar } = data;
@@ -120,7 +125,7 @@ export default async function NewsPage({ params }: { params: { slug: string } })
           <Breadcrumbs
             items={[
               { href: "/", label: "Главная" },
-              { href: `/category/${news.category.slug}`, label: news.category.name },
+              ...(news.category ? [{ href: `/category/${news.category.slug}`, label: news.category.name }] : []),
               { label: news.title },
             ]}
           />
@@ -132,9 +137,11 @@ export default async function NewsPage({ params }: { params: { slug: string } })
             <p className="text-base leading-7 text-muted-foreground">{news.lead}</p>
 
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <Link href={`/category/${news.category.slug}`} className="hover:text-foreground">
-                <Badge variant="secondary">{news.category.name}</Badge>
-              </Link>
+              {news.category ? (
+                <Link href={`/category/${news.category.slug}`} className="hover:text-foreground">
+                  <Badge variant="secondary">{news.category.name}</Badge>
+                </Link>
+              ) : null}
               {news.publishedAt ? <span>{formatDateTime(news.publishedAt)}</span> : null}
               <span>•</span>
               <span>{news.author.name}</span>

@@ -68,3 +68,81 @@ TypeError: ComponentMod.patchFetch is not a function
  POST /api/views/cmn47wqo2000oibq8u7gd0jj9 200 in 18ms
  POST /api/views/cmn47wqok0010ibq80bulrxrm 200 in 26ms
  POST /api/views/cmn4a13mi000nib4sp4y9oi18 200 in 20ms
+ GET / 200 in 170ms
+ GET /favicon.ico 200 in 21ms
+ ✓ Compiled in 700ms (922 modules)
+ ✓ Compiled /api/views/[newsId] in 388ms (948 modules)
+ POST /api/views/cmn4a13mi000nib4sp4y9oi18 200 in 537ms
+ POST /api/views/cmn47wqqi0026ibq80yeizzdx 200 in 31ms
+ GET / 200 in 130ms
+ ✓ Compiled /favicon.ico in 239ms (977 modules)
+ GET /favicon.ico 200 in 358ms
+ GET / 200 in 134ms
+ GET /favicon.ico 200 in 16ms
+ GET / 200 in 292ms
+ GET /favicon.ico 200 in 10ms
+ POST /api/views/cmn4a13mi000nib4sp4y9oi18 200 in 20ms
+ GET /news/news 200 in 49ms
+ GET /favicon.ico 200 in 11ms
+ POST /api/views/cmn4a13mi000nib4sp4y9oi18 200 in 23ms
+ GET /news/news 200 in 38ms
+ GET /favicon.ico 200 in 8ms
+ POST /api/views/cmn4a13mi000nib4sp4y9oi18 200 in 40ms
+ ○ Compiling /admin ...
+ ✓ Compiled /admin in 1046ms (1336 modules)
+ GET /admin/news/cmn4dh2mc00neib1wpq9fzwbt/edit 200 in 271ms
+ GET /admin/news/cmn4dh2mc00neib1wpq9fzwbt/edit?saved=1 200 in 32ms
+ POST /admin/news/cmn4dh2mc00neib1wpq9fzwbt/edit 303 in 91ms
+ GET /admin/news/cmn4dh2mc00neib1wpq9fzwbt/edit?saved=1 200 in 27ms
+ POST /admin/news/cmn4dh2mc00neib1wpq9fzwbt/edit?saved=1 303 in 66ms
+ GET /admin/news/cmn4dh2mc00neib1wpq9fzwbt/edit?saved=1 200 in 85ms
+ ✓ Compiled /favicon.ico in 458ms (958 modules)
+ GET /favicon.ico 200 in 565ms
+ GET / 200 in 195ms
+ GET /category/%d5%a1%d6%80%d6%81%d5%a1%d5%ad 404 in 91ms
+ GET /category/%d5%a5%d6%80%d5%af%d6%80%d5%a1%d5%b7%d5%a1%d6%80%d5%aa 404 in 77ms
+ GET / 200 in 68ms
+ GET /favicon.ico 200 in 10ms
+ GET /news/%d5%a1%d6%80%d6%81%d5%a1%d5%ad%d5%b8%d6%82%d5%b4-7787443000000 404 in 103ms
+ GET /news/%d5%a1%d6%80%d6%81%d5%a1%d5%ad%d5%b8%d6%82%d5%b4-7787443000000 404 in 54ms
+ GET /favicon.ico 200 in 19ms
+ GET /news/%d5%a1%d6%80%d6%81%d5%a1%d5%ad%d5%b8%d6%82%d5%b4-7787443000000 404 in 57ms
+ GET /favicon.ico 200 in 9ms
+ GET /news/%d5%a1%d6%80%d6%81%d5%a1%d5%ad%d5%b8%d6%82%d5%b4-7787443000000 404 in 48ms
+ GET /favicon.ico 200 in 15ms
+ GET /news/%d5%a1%d6%80%d6%81%d5%a1%d5%ad%d5%b8%d6%82%d5%b4-7787443000000 404 in 53ms
+ GET /favicon.ico 200 in 11ms
+ GET /news/%d5%a2%d5%b6%d5%a1%d5%af%d5%a1%d6%80%d5%a1%d5%b6-%d5%be%d5%a1%d6%80%d5%b1%d5%a1%d5%af%d5%a1%d5%ac%d5%a5%d5%ac%d5%ab%d5%bd-%d5%b8%d6%82%d5%b7%d5%a1%d5%a4%d5%ab%d6%80-%d5%a5%d5%b2%d5%a5%d6%84-%d5%ba 404 in 72ms
+ GET /news/%d5%a2%d5%b6%d5%a1%d5%af%d5%a1%d6%80%d5%a1%d5%b6-%d5%be%d5%a1%d6%80%d5%b1%d5%a1%d5%af%d5%a1%d5%ac%d5%a5%d5%ac%d5%ab%d5%bd-%d5%b8%d6%82%d5%b7%d5%a1%d5%a4%d5%ab%d6%80-%d5%a5%d5%b2%d5%a5%d6%84-%d5%ba 404 in 65ms
+ GET /favicon.ico 200 in 13ms
+ GET /news/%d5%a2%d5%b6%d5%a1%d5%af%d5%a1%d6%80%d5%a1%d5%b6-%d5%be%d5%a1%d6%80%d5%b1%d5%a1%d5%af%d5%a1%d5%ac%d5%a5%d5%ac%d5%ab%d5%bd-%d5%b8%d6%82%d5%b7%d5%a1%d5%a4%d5%ab%d6%80-%d5%a5%d5%b2%d5%a5%d6%84-%d5%ba 404 in 51ms
+ GET /favicon.ico 200 in 12ms
+ GET /news/%d5%a2%d5%b6%d5%a1%d5%af%d5%a1%d6%80%d5%a1%d5%b6-%d5%be%d5%a1%d6%80%d5%b1%d5%a1%d5%af%d5%a1%d5%ac%d5%a5%d5%ac%d5%ab%d5%bd-%d5%b8%d6%82%d5%b7%d5%a1%d5%a4%d5%ab%d6%80-%d5%a5%d5%b2%d5%a5%d6%84-%d5%ba 404 in 46ms
+ GET /favicon.ico 200 in 9ms
+ GET /admin/news/cmn4dh20p00n4ib1wsvrnpxqs/edit 200 in 258ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 626ms (1339 modules)
+ GET /admin/assets?asset=photo-60&flash=asset-updated 404 in 817ms
+ ✓ Compiled /favicon.ico in 338ms (959 modules)
+ GET /favicon.ico 200 in 488ms
+ GET /admin/assets?asset=photo-61&flash=asset-created 404 in 208ms
+ GET /favicon.ico 200 in 10ms
+ ○ Compiling /api/views/[newsId] ...
+ ✓ Compiled /api/views/[newsId] in 592ms (982 modules)
+ POST /api/views/cmn4a13mi000nib4sp4y9oi18 200 in 753ms
+ GET / 200 in 177ms
+ GET /favicon.ico 200 in 22ms
+ POST /api/views/cmn47wqou0016ibq8bkrwv9ls 200 in 95ms
+ GET /news/%d5%a2%d5%b6%d5%a1%d5%af%d5%a1%d6%80%d5%a1%d5%b6-%d5%be%d5%a1%d6%80%d5%b1%d5%a1%d5%af%d5%a1%d5%ac%d5%a5%d5%ac%d5%ab%d5%bd-%d5%b8%d6%82%d5%b7%d5%a1%d5%a4%d5%ab%d6%80-%d5%a5%d5%b2%d5%a5%d6%84-%d5%ba 404 in 124ms
+ GET /news/%d5%a2%d5%b6%d5%a1%d5%af%d5%a1%d6%80%d5%a1%d5%b6-%d5%be%d5%a1%d6%80%d5%b1%d5%a1%d5%af%d5%a1%d5%ac%d5%a5%d5%ac%d5%ab%d5%bd-%d5%b8%d6%82%d5%b7%d5%a1%d5%a4%d5%ab%d6%80-%d5%a5%d5%b2%d5%a5%d6%84-%d5%ba 404 in 74ms
+ GET /favicon.ico 200 in 16ms
+ GET /news/%d5%a2%d5%b6%d5%a1%d5%af%d5%a1%d6%80%d5%a1%d5%b6-%d5%be%d5%a1%d6%80%d5%b1%d5%a1%d5%af%d5%a1%d5%ac%d5%a5%d5%ac%d5%ab%d5%bd-%d5%b8%d6%82%d5%b7%d5%a1%d5%a4%d5%ab%d6%80-%d5%a5%d5%b2%d5%a5%d6%84-%d5%ba 404 in 60ms
+ GET /favicon.ico 200 in 13ms
+ GET /news/%d5%a2%d5%b6%d5%a1%d5%af%d5%a1%d6%80%d5%a1%d5%b6-%d5%be%d5%a1%d6%80%d5%b1%d5%a1%d5%af%d5%a1%d5%ac%d5%a5%d5%ac%d5%ab%d5%bd-%d5%b8%d6%82%d5%b7%d5%a1%d5%a4%d5%ab%d6%80-%d5%a5%d5%b2%d5%a5%d6%84-%d5%ba 404 in 57ms
+ GET /favicon.ico 200 in 10ms
+ GET /news/%d5%a2%d5%b6%d5%a1%d5%af%d5%a1%d6%80%d5%a1%d5%b6-%d5%be%d5%a1%d6%80%d5%b1%d5%a1%d5%af%d5%a1%d5%ac%d5%a5%d5%ac%d5%ab%d5%bd-%d5%b8%d6%82%d5%b7%d5%a1%d5%a4%d5%ab%d6%80-%d5%a5%d5%b2%d5%a5%d6%84-%d5%ba 404 in 57ms
+ GET /favicon.ico 200 in 17ms
+ GET /news/%d5%a2%d5%b6%d5%a1%d5%af%d5%a1%d6%80%d5%a1%d5%b6-%d5%be%d5%a1%d6%80%d5%b1%d5%a1%d5%af%d5%a1%d5%ac%d5%a5%d5%ac%d5%ab%d5%bd-%d5%b8%d6%82%d5%b7%d5%a1%d5%a4%d5%ab%d6%80-%d5%a5%d5%b2%d5%a5%d6%84-%d5%ba 404 in 41ms
+ GET /favicon.ico 200 in 33ms
+ GET /news/%d5%a2%d5%b6%d5%a1%d5%af%d5%a1%d6%80%d5%a1%d5%b6-%d5%be%d5%a1%d6%80%d5%b1%d5%a1%d5%af%d5%a1%d5%ac%d5%a5%d5%ac%d5%ab%d5%bd-%d5%b8%d6%82%d5%b7%d5%a1%d5%a4%d5%ab%d6%80-%d5%a5%d5%b2%d5%a5%d6%84-%d5%ba 404 in 95ms
+ GET /favicon.ico 200 in 9ms

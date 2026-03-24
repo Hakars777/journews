@@ -16,7 +16,8 @@
     "db:migrate": "node scripts/prisma.mjs migrate dev --skip-seed",
     "db:seed": "node scripts/prisma.mjs db seed",
     "db:studio": "node scripts/prisma.mjs studio",
-    "postinstall": "npm run prisma:generate"
+    "postinstall": "npm run prisma:generate",
+    "wp:import": "node --env-file=.env scripts/wp-import.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

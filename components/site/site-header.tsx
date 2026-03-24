@@ -9,9 +9,10 @@ const getHeaderCategories = unstable_cache(
   async () =>
     prisma.category.findMany({
       orderBy: { name: "asc" },
+      take: 7,
       select: { id: true, name: true, slug: true },
     }),
-  ["site-header-categories"],
+  ["site-header-categories-v2"],
   { revalidate: 300 },
 );
 
