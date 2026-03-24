@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import { Input } from "@/components/ui/input";
 import { prisma } from "@/lib/prisma";
 import { SITE_NAME } from "@/lib/site";
+import { LogoLink } from "@/components/site/logo-link";
 
 const getHeaderCategories = unstable_cache(
   async () =>
@@ -22,12 +23,7 @@ export async function SiteHeader() {
   return (
     <header className="border-b bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="container flex h-14 items-center gap-4">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-sm bg-primary" aria-hidden />
-          <span className="jn-headline text-lg font-semibold uppercase tracking-wide">
-            {SITE_NAME}
-          </span>
-        </Link>
+        <LogoLink name={SITE_NAME} />
 
         <nav className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
           {categories.map((c) => (
