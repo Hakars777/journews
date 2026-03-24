@@ -10,6 +10,6 @@ export function buildNewsSearchWhere(query: string): Prisma.NewsWhereInput {
     : ({ contains: q } as Prisma.StringFilter);
 
   return {
-    OR: [{ title: filter }, { lead: filter }, { contentHtml: filter }],
+    OR: [{ title: filter }, { lead: filter }],
   };
 }

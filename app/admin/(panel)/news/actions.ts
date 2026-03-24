@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { assertEditor } from "@/lib/guard-actions";
 import { deleteUploadedImage, saveImageUpload } from "@/lib/uploads";
@@ -43,14 +44,18 @@ function toDateOrNull(input?: string) {
 
 async function uniqueSlugOrThrow(slug: string, excludeId?: string) {
   const base = slugify(slug);
-  let candidate = base;
+  const taken = await prisma.news.findMany({
+    where: {
+      slug: { startsWith: base },
+      ...(excludeId ? { NOT: { id: excludeId } } : {}),
+    },
+    select: { slug: true },
+  });
+  const takenSet = new Set(taken.map((n) => n.slug));
+  if (!takenSet.has(base)) return base;
   for (let i = 2; i < 50; i++) {
-    const existing = await prisma.news.findFirst({
-      where: excludeId ? { slug: candidate, NOT: { id: excludeId } } : { slug: candidate },
-      select: { id: true },
-    });
-    if (!existing) return candidate;
-    candidate = `${base}-${i}`;
+    const candidate = `${base}-${i}`;
+    if (!takenSet.has(candidate)) return candidate;
   }
   throw new Error("Не удалось подобрать уникальный slug.");
 }
@@ -167,6 +172,8 @@ export async function createNewsAction(
     },
   });
 
+  revalidateTag("home-page");
+  revalidateTag("site-sidebar");
   redirect("/admin/news?created=1");
 }
 
@@ -272,6 +279,9 @@ export async function updateNewsAction(
     }),
   ]);
 
+  revalidateTag("home-page");
+  revalidateTag("news-page");
+  revalidateTag("site-sidebar");
   redirect(`/admin/news/${existing.id}/edit?saved=1`);
 }
 
@@ -292,6 +302,9 @@ export async function deleteNewsAction(newsId: string) {
   }
 
   await prisma.news.delete({ where: { id: existing.id } });
+  revalidateTag("home-page");
+  revalidateTag("news-page");
+  revalidateTag("site-sidebar");
   redirect("/admin/news");
 }
 

@@ -146,6 +146,9 @@ model News {
   @@index([categoryId])
   @@index([views])
   @@index([status])
+  @@index([status, publishedAt])
+  @@index([isTop])
+  @@index([isEditorsPick])
 }
 
 model NewsTag {

@@ -18,15 +18,17 @@ function Cover({
   src,
   alt,
   className,
+  priority,
 }: {
   src?: string | null;
   alt: string;
   className?: string;
+  priority?: boolean;
 }) {
   if (src) {
     return (
       <div className={cn("relative overflow-hidden rounded-md bg-muted", className)}>
-        <Image src={src} alt={alt} fill className="object-cover" />
+        <Image src={src} alt={alt} fill className="object-cover" priority={priority} />
       </div>
     );
   }
@@ -54,6 +56,7 @@ export function NewsCardBig({ item }: { item: NewsCardItem }) {
             src={item.coverImage}
             alt={item.title}
             className="aspect-[16/9] sm:aspect-[21/9]"
+            priority
           />
         </Link>
 

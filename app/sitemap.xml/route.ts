@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getBaseUrl } from "@/lib/site";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 function xmlEscape(s: string) {
   return s
