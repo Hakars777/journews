@@ -1,0 +1,70 @@
+
+> journews@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 2.5s
+ ○ Compiling / ...
+ ✓ Compiled / in 4s (691 modules)
+ GET / 200 in 4534ms
+ ○ Compiling /admin/news/[id]/edit ...
+ ✓ Compiled /admin/news/[id]/edit in 2.1s (1306 modules)
+ GET /admin/news/cmn4a13mi000nib4sp4y9oi18/edit 200 in 4046ms
+ ✓ Compiled /favicon.ico in 332ms (929 modules)
+ GET /favicon.ico 200 in 427ms
+ GET /admin/news/cmn4a13mi000nib4sp4y9oi18/edit?saved=1 200 in 64ms
+ POST /admin/news/cmn4a13mi000nib4sp4y9oi18/edit 303 in 253ms
+ ○ Compiling /news/[slug] ...
+ ✓ Compiled /news/[slug] in 584ms (1360 modules)
+ GET /news/news 200 in 1259ms
+ GET /favicon.ico 200 in 163ms
+ ○ Compiling /api/views/[newsId] ...
+ ✓ Compiled /api/views/[newsId] in 534ms (974 modules)
+ POST /api/views/cmn4a13mi000nib4sp4y9oi18 200 in 1361ms
+ POST /api/views/cmn4a13mi000nib4sp4y9oi18 200 in 27ms
+ GET / 200 in 251ms
+ GET /favicon.ico 200 in 22ms
+ POST /api/views/cmn4a13mi000nib4sp4y9oi18 200 in 22ms
+ GET /news/news 200 in 56ms
+ GET /favicon.ico 200 in 12ms
+ POST /api/views/cmn4a13mi000nib4sp4y9oi18 200 in 19ms
+ POST /api/views/cmn47wqnr000kibq8e3jwmn61 200 in 24ms
+ ○ Compiling /category/[slug] ...
+ ✓ Compiled /category/[slug] in 859ms (1387 modules)
+ GET /category/politics 200 in 117ms
+ GET /favicon.ico 200 in 34ms
+ GET / 200 in 78ms
+ GET /favicon.ico 200 in 10ms
+ ✓ Compiled in 1354ms (1378 modules)
+ GET /admin/news/cmn4a13mi000nib4sp4y9oi18/edit?saved=1&_rsc=1m69t 200 in 593ms
+ ✓ Compiled in 1274ms (1378 modules)
+ GET /admin/news/cmn4a13mi000nib4sp4y9oi18/edit?saved=1&_rsc=1m69t 200 in 493ms
+ GET / 200 in 178ms
+ GET /favicon.ico 200 in 20ms
+ ⨯ Failed to generate static paths for /news/[slug]:
+TypeError: ComponentMod.patchFetch is not a function
+    at buildAppStaticPaths (C:\Users\onair-am\Desktop\journews-main\journews-main\node_modules\next\dist\build\utils.js:952:18)
+    at Object.loadStaticPaths (C:\Users\onair-am\Desktop\journews-main\journews-main\node_modules\next\dist\server\dev\static-paths-worker.js:48:53)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  type: 'TypeError'
+}
+ ⨯ Failed to generate static paths for /news/[slug]:
+TypeError: ComponentMod.patchFetch is not a function
+    at buildAppStaticPaths (C:\Users\onair-am\Desktop\journews-main\journews-main\node_modules\next\dist\build\utils.js:952:18)
+    at Object.loadStaticPaths (C:\Users\onair-am\Desktop\journews-main\journews-main\node_modules\next\dist\server\dev\static-paths-worker.js:48:53)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  type: 'TypeError'
+}
+ ✓ Compiled /api/views/[newsId] in 260ms (977 modules)
+ POST /api/views/cmn4a13mi000nib4sp4y9oi18 200 in 367ms
+ POST /api/views/cmn47wqqi0026ibq80yeizzdx 200 in 22ms
+ POST /api/views/cmn47wqob000uibq8cmey5p63 200 in 28ms
+ POST /api/views/cmn47wqo5000qibq8j6fvkgb8 200 in 19ms
+ POST /api/views/cmn47wqo2000oibq8u7gd0jj9 200 in 30ms
+ POST /api/views/cmn47wqo2000oibq8u7gd0jj9 200 in 18ms
+ POST /api/views/cmn47wqok0010ibq80bulrxrm 200 in 26ms
+ POST /api/views/cmn4a13mi000nib4sp4y9oi18 200 in 20ms
