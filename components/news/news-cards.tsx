@@ -19,16 +19,18 @@ function Cover({
   alt,
   className,
   priority,
+  sizes,
 }: {
   src?: string | null;
   alt: string;
   className?: string;
   priority?: boolean;
+  sizes?: string;
 }) {
   if (src) {
     return (
       <div className={cn("relative overflow-hidden rounded-md bg-muted", className)}>
-        <Image src={src} alt={alt} fill className="object-cover" priority={priority} />
+        <Image src={src} alt={alt} fill className="object-cover" priority={priority} sizes={sizes} />
       </div>
     );
   }
@@ -57,6 +59,7 @@ export function NewsCardBig({ item }: { item: NewsCardItem }) {
             alt={item.title}
             className="aspect-[16/9] sm:aspect-[21/9]"
             priority
+            sizes="(max-width: 1024px) 100vw, 65vw"
           />
         </Link>
 
@@ -97,7 +100,7 @@ export function NewsCardRow({ item }: { item: NewsCardItem }) {
       <Link href={`/news/${item.slug}`} className="absolute inset-0 z-0" aria-label={item.title} />
       <div className="grid gap-4 sm:grid-cols-[220px,1fr]">
         <Link href={`/news/${item.slug}`} className="relative z-10 block">
-          <Cover src={item.coverImage} alt={item.title} className="aspect-[16/10]" />
+          <Cover src={item.coverImage} alt={item.title} className="aspect-[16/10]" sizes="(max-width: 640px) 100vw, 220px" />
         </Link>
 
         <div className="grid gap-2">
