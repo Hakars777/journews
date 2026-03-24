@@ -28,8 +28,8 @@ function createPrismaClient(): PrismaClient {
     const { PrismaPg } = require("@prisma/adapter-pg") as typeof import("@prisma/adapter-pg");
     const pool = new Pool({
       connectionString: url,
-      max: 5,                // allow parallel queries (sidebar uses Promise.all with 4 queries)
-      idleTimeoutMillis: 30_000,
+      max: 2,
+      idleTimeoutMillis: 10_000,
     });
     // @ts-ignore – adapter property is present when client is generated from the
     // postgres schema; suppressed here so local sqlite builds don't fail.
