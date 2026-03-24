@@ -23,9 +23,6 @@ export default async function AdminLoginPage() {
         </CardHeader>
         <CardContent>
           <LoginForm />
-          <p className="mt-4 text-xs text-muted-foreground">
-            Демо-аккаунты: admin@local.test / Admin123! и editor@local.test / Editor123!
-          </p>
         </CardContent>
       </Card>
     </div>
