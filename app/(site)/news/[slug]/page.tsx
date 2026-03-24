@@ -12,6 +12,8 @@ import { ViewTracker } from "@/components/news/view-tracker";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/format";
 import { SITE_NAME, getBaseUrl } from "@/lib/site";
+import { Suspense } from "react";
+import { SiteSidebar } from "@/components/site/site-sidebar";
 import { toAbsoluteMediaUrl } from "@/lib/uploads";
 
 // Cache individual articles for 5 min. ViewTracker is a client component
@@ -216,22 +218,9 @@ export default async function NewsPage({ params }: { params: { slug: string } })
           ) : null}
         </article>
 
-        <aside className="rounded-md border p-4">
-          <h3 className="jn-headline text-sm font-semibold uppercase tracking-wide">
-            {SITE_NAME}
-          </h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Читайте главные новости, следите за категориями и используйте поиск по архиву.
-          </p>
-          <div className="mt-4">
-            <Link
-              href="/"
-              className="inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-            >
-              На главную
-            </Link>
-          </div>
-        </aside>
+        <Suspense>
+          <SiteSidebar />
+        </Suspense>
       </div>
     </div>
   );
