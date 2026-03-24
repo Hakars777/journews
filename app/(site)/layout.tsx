@@ -9,7 +9,11 @@ export const revalidate = 300;
 export default async function SiteLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  await runSchedulerIfNeeded();
+  try {
+    await runSchedulerIfNeeded();
+  } catch {
+    // Scheduler failure must not crash the page
+  }
 
   return (
     <div className="min-h-dvh flex flex-col">
