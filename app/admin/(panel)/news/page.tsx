@@ -30,7 +30,7 @@ export default async function AdminNewsListPage({
   const status = typeof searchParams.status === "string" ? searchParams.status : "";
   const categoryId = typeof searchParams.categoryId === "string" ? searchParams.categoryId : "";
   const authorId = typeof searchParams.authorId === "string" ? searchParams.authorId : "";
-  const sort = typeof searchParams.sort === "string" ? searchParams.sort : "createdAt_desc";
+  const sort = typeof searchParams.sort === "string" ? searchParams.sort : "publishedAt_desc";
 
   const where: Prisma.NewsWhereInput = {};
   if (status && (Object.values(NewsStatus) as string[]).includes(status)) {
