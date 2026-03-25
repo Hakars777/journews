@@ -1,22 +1,22 @@
 "use server";
 
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { saveImageUpload, deleteUploadedImage } from "@/lib/uploads";
 import { assertAdmin } from "@/lib/guard-actions";
 
-export async function saveFaviconAction(formData: FormData) {
+export async function saveFaviconAction(formData: FormData): Promise<void> {
   await assertAdmin();
 
   const file = formData.get("favicon") as File | null;
-  if (!file || file.size === 0) return { error: "Файл не выбран" };
+  if (!file || file.size === 0) return;
 
   // Удаляем старый favicon если был
   const old = await prisma.siteSetting.findUnique({ where: { key: "favicon" } });
   if (old?.value) await deleteUploadedImage(old.value);
 
   const url = await saveImageUpload(file, "site");
-  if (!url) return { error: "Ошибка загрузки файла" };
+  if (!url) return;
 
   await prisma.siteSetting.upsert({
     where: { key: "favicon" },
@@ -25,7 +25,6 @@ export async function saveFaviconAction(formData: FormData) {
   });
 
   revalidatePath("/", "layout");
-  return { ok: true, url };
 }
 
 export async function deleteFaviconAction() {
