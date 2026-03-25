@@ -2,10 +2,13 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import sharp from "sharp";
 
 const UPLOAD_ROOT = path.join(process.cwd(), "public", "uploads");
 const ALLOWED_EXT = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
 const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_DIMENSION = 1920;
+const WEBP_QUALITY = 82;
 const DEFAULT_BUCKET = "media";
 
 const globalForStorage = globalThis as unknown as { supabaseAdmin?: SupabaseClient };
@@ -172,13 +175,33 @@ export async function ensureUploadDirs() {
   await fs.mkdir(UPLOAD_ROOT, { recursive: true });
 }
 
+async function compressImage(file: File): Promise<{ buffer: Buffer; ext: string; mime: string }> {
+  const ext = path.extname(file.name).toLowerCase();
+  const input = Buffer.from(await file.arrayBuffer());
+
+  // GIF — keep as-is (would lose animation)
+  if (ext === ".gif") {
+    return { buffer: input, ext: ".gif", mime: "image/gif" };
+  }
+
+  const buffer = await sharp(input)
+    .resize(MAX_DIMENSION, MAX_DIMENSION, { fit: "inside", withoutEnlargement: true })
+    .webp({ quality: WEBP_QUALITY })
+    .toBuffer();
+
+  return { buffer, ext: ".webp", mime: "image/webp" };
+}
+
 export async function saveImageUpload(file: File, folder = "news") {
   if (!file || file.size <= 0) return null;
   if (file.size > MAX_BYTES) throw new Error("File is too large (max 10MB).");
 
+  const { buffer, ext, mime } = await compressImage(file);
+  const compressed = new File([buffer], `upload${ext}`, { type: mime });
+
   return getSupabaseEnv()
-    ? saveSupabaseImageUpload(file, folder)
-    : saveLocalImageUpload(file);
+    ? saveSupabaseImageUpload(compressed, folder)
+    : saveLocalImageUpload(compressed);
 }
 
 export async function deleteUploadedImage(publicPath: string) {
