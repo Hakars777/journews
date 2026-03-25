@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { SITE_DESCRIPTION, SITE_NAME, getBaseUrl } from "@/lib/site";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
+import { prisma } from "@/lib/prisma";
 import "./globals.css";
 
 const fontSans = Noto_Sans({
@@ -18,25 +19,31 @@ const fontSerif = Noto_Serif({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(getBaseUrl()),
-  title: {
-    default: SITE_NAME,
-    template: `%s | ${SITE_NAME}`,
-  },
-  description: SITE_DESCRIPTION,
-  openGraph: {
-    type: "website",
-    siteName: SITE_NAME,
-    title: SITE_NAME,
+export async function generateMetadata(): Promise<Metadata> {
+  const faviconSetting = await prisma.siteSetting.findUnique({ where: { key: "favicon" } }).catch(() => null);
+  const favicon = faviconSetting?.value;
+
+  return {
+    metadataBase: new URL(getBaseUrl()),
+    title: {
+      default: SITE_NAME,
+      template: `%s | ${SITE_NAME}`,
+    },
     description: SITE_DESCRIPTION,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: SITE_NAME,
-    description: SITE_DESCRIPTION,
-  },
-};
+    icons: favicon ? { icon: favicon, shortcut: favicon, apple: favicon } : undefined,
+    openGraph: {
+      type: "website",
+      siteName: SITE_NAME,
+      title: SITE_NAME,
+      description: SITE_DESCRIPTION,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: SITE_NAME,
+      description: SITE_DESCRIPTION,
+    },
+  };
+}
 
 export default function RootLayout({
   children,

@@ -177,3 +177,9 @@ model NewsView {
   @@index([createdAt])
 }
 
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+

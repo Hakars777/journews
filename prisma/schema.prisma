@@ -164,6 +164,12 @@ model NewsTag {
   @@index([tagId])
 }
 
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 model NewsView {
   id         String   @id @default(cuid())
   newsId     String
