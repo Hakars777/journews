@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/format";
-import { bulkDeleteNewsAction } from "@/app/admin/(panel)/news/actions";
+import { bulkDeleteNewsAction, bulkPublishNewsAction, bulkArchiveNewsAction } from "@/app/admin/(panel)/news/actions";
 
 type NewsItem = {
   id: string;
@@ -62,21 +62,61 @@ export function NewsTableWithBulkActions({ items }: { items: NewsItem[] }) {
     });
   }
 
+  function handleBulkPublish() {
+    if (!selected.size) return;
+    startTransition(async () => {
+      const result = await bulkPublishNewsAction(Array.from(selected));
+      if (result.ok) {
+        setSelected(new Set());
+        router.refresh();
+      } else {
+        alert(result.message ?? "Ошибка публикации.");
+      }
+    });
+  }
+
+  function handleBulkArchive() {
+    if (!selected.size) return;
+    startTransition(async () => {
+      const result = await bulkArchiveNewsAction(Array.from(selected));
+      if (result.ok) {
+        setSelected(new Set());
+        router.refresh();
+      } else {
+        alert(result.message ?? "Ошибка архивации.");
+      }
+    });
+  }
+
   return (
     <div>
       {selected.size > 0 && (
-        <div className="mb-3 flex items-center gap-3 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-2">
-          <span className="text-sm font-medium">Выбрано: {selected.size}</span>
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border bg-muted/40 px-4 py-2">
+          <span className="text-sm font-medium mr-1">Выбрано: {selected.size}</span>
+          <button
+            onClick={handleBulkPublish}
+            disabled={isPending}
+            className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            {isPending ? "..." : "Опубликовать"}
+          </button>
+          <button
+            onClick={handleBulkArchive}
+            disabled={isPending}
+            className="rounded-md bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50"
+          >
+            {isPending ? "..." : "В архив"}
+          </button>
           <button
             onClick={handleBulkDelete}
             disabled={isPending}
             className="rounded-md bg-destructive px-3 py-1 text-xs font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
           >
-            {isPending ? "Удаление..." : "Удалить выбранные"}
+            {isPending ? "..." : "Удалить"}
           </button>
           <button
             onClick={() => setSelected(new Set())}
-            className="text-xs text-muted-foreground hover:text-foreground"
+            className="ml-auto text-xs text-muted-foreground hover:text-foreground"
           >
             Снять выделение
           </button>

@@ -329,3 +329,34 @@ export async function bulkDeleteNewsAction(ids: string[]): Promise<{ ok: boolean
   await prisma.news.deleteMany({ where: { id: { in: ids } } });
   return { ok: true };
 }
+
+export async function bulkPublishNewsAction(ids: string[]): Promise<{ ok: boolean; message?: string }> {
+  await assertEditor();
+  if (!ids.length) return { ok: false, message: "Не выбрано ни одной новости." };
+
+  const now = new Date();
+  await prisma.news.updateMany({
+    where: { id: { in: ids } },
+    data: { status: "PUBLISHED", publishedAt: now, scheduledAt: null },
+  });
+
+  revalidateTag("home-page");
+  revalidateTag("news-page");
+  revalidateTag("site-sidebar");
+  return { ok: true };
+}
+
+export async function bulkArchiveNewsAction(ids: string[]): Promise<{ ok: boolean; message?: string }> {
+  await assertEditor();
+  if (!ids.length) return { ok: false, message: "Не выбрано ни одной новости." };
+
+  await prisma.news.updateMany({
+    where: { id: { in: ids } },
+    data: { status: "ARCHIVED" },
+  });
+
+  revalidateTag("home-page");
+  revalidateTag("news-page");
+  revalidateTag("site-sidebar");
+  return { ok: true };
+}
