@@ -6,6 +6,7 @@ import { getSiteSettings } from "@/lib/site";
 
 const nav = [
   { href: "/admin", label: "Дашборд" },
+  { href: "/admin/analytics", label: "Аналитика" },
   { href: "/admin/news", label: "Новости" },
   { href: "/admin/categories", label: "Категории" },
   { href: "/admin/tags", label: "Теги" },
