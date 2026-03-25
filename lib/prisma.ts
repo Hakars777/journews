@@ -30,6 +30,7 @@ function createPrismaClient(): PrismaClient {
       connectionString: url,
       max: 2,
       idleTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 8_000,
     });
     // @ts-ignore – adapter property is present when client is generated from the
     // postgres schema; suppressed here so local sqlite builds don't fail.

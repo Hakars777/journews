@@ -33,7 +33,7 @@ const getNewsPageData = unstable_cache(
     return fetchNewsPageData(slug);
   },
   ["news-page"],
-  { revalidate: 300 },
+  { revalidate: 300, tags: ["news-page"] },
 );
 
 async function fetchNewsPageData(slug: string) {
@@ -79,7 +79,10 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const data = await getNewsPageData(decodeURIComponent(params.slug));
+  const [data, settings] = await Promise.all([
+    getNewsPageData(decodeURIComponent(params.slug)).catch(() => null),
+    getSiteSettings().catch(() => ({ name: "", description: "" })),
+  ]);
   if (!data) return { title: "Новость не найдена" };
 
   const { news } = data;
@@ -87,7 +90,6 @@ export async function generateMetadata({
   const url = `${baseUrl}/news/${params.slug}`;
   const image = toAbsoluteMediaUrl(news.coverImage, baseUrl);
   const publishedTime = toIsoDateTime(news.publishedAt);
-  const settings = await getSiteSettings();
 
   return {
     title: news.title,
@@ -112,7 +114,7 @@ export async function generateMetadata({
 
 export default async function NewsPage({ params }: { params: { slug: string } }) {
   const slug = decodeURIComponent(params.slug);
-  const data = await getNewsPageData(slug);
+  const data = await getNewsPageData(slug).catch(() => null);
   if (!data) notFound();
 
   const { news, similar } = data;
