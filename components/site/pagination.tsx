@@ -13,26 +13,13 @@ function pageRange(current: number, total: number) {
 export function PaginationLinks({
   page,
   totalPages,
-  basePath,
-  searchParams,
+  buildHref,
 }: {
   page: number;
   totalPages: number;
-  basePath: string;
-  searchParams: Record<string, string | string[] | undefined>;
+  buildHref: (page: number) => string;
 }) {
   if (totalPages <= 1) return null;
-
-  const buildHref = (p: number) => {
-    const sp = new URLSearchParams();
-    for (const [k, v] of Object.entries(searchParams)) {
-      if (k === "page") continue;
-      if (typeof v === "string" && v) sp.set(k, v);
-      if (Array.isArray(v)) v.filter(Boolean).forEach((x) => sp.append(k, x));
-    }
-    sp.set("page", String(p));
-    return `${basePath}?${sp.toString()}`;
-  };
 
   const pages = pageRange(page, totalPages);
 
@@ -107,4 +94,3 @@ export function PaginationLinks({
     </nav>
   );
 }
-

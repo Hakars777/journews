@@ -7,32 +7,46 @@ import { PaginationLinks } from "@/components/site/pagination";
 import { SiteSidebar } from "@/components/site/site-sidebar";
 import { NewsCardRow } from "@/components/news/news-cards";
 import { prisma } from "@/lib/prisma";
-import { getPagination, pageCount } from "@/lib/pagination";
+import { getPagination, pageCount, parsePage } from "@/lib/pagination";
 
 export const revalidate = 300;
 
 const PAGE_SIZE = 12;
 
-const getTagMeta = unstable_cache(
+export async function generateStaticParams() {
+  const categories = await prisma.category.findMany({
+    select: { slug: true },
+  });
+  // Pre-render first 5 pages of each category
+  const params = [];
+  for (const { slug } of categories) {
+    for (let p = 2; p <= 5; p++) {
+      params.push({ slug, page: String(p) });
+    }
+  }
+  return params;
+}
+
+const getCategoryMeta = unstable_cache(
   async (slug: string) =>
-    prisma.tag.findUnique({
+    prisma.category.findUnique({
       where: { slug },
-      select: { id: true, name: true, slug: true },
+      select: { id: true, name: true, description: true, slug: true },
     }),
-  ["tag-meta"],
+  ["category-meta"],
   { revalidate: 300 },
 );
 
-const getTagPageData = unstable_cache(
+const getCategoryPageData = unstable_cache(
   async (slug: string, page: number) => {
-    const tag = await getTagMeta(slug);
-    if (!tag) return null;
+    const category = await getCategoryMeta(slug);
+    if (!category) return null;
 
     const { skip, take } = getPagination(page, PAGE_SIZE);
     const where = {
       status: "PUBLISHED" as const,
       publishedAt: { not: null },
-      tags: { some: { tagId: tag.id } },
+      categoryId: category.id,
     };
 
     const [total, items] = await Promise.all([
@@ -56,34 +70,41 @@ const getTagPageData = unstable_cache(
     ]);
 
     return {
-      tag,
+      category,
       items,
       totalPages: pageCount(total, PAGE_SIZE),
     };
   },
-  ["tag-page"],
+  ["category-page"],
   { revalidate: 300 },
 );
 
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: { slug: string; page: string };
 }): Promise<Metadata> {
-  const tag = await getTagMeta(params.slug);
-  if (!tag) return { title: "Тег не найден" };
-  return { title: `Тег: ${tag.name}` };
+  const category = await getCategoryMeta(params.slug);
+  if (!category) return { title: "Категория не найдена" };
+  return {
+    title: `${category.name} — страница ${params.page}`,
+    description: category.description ?? undefined,
+  };
 }
 
-export default async function TagPage({
+export default async function CategoryPageN({
   params,
 }: {
-  params: { slug: string };
+  params: { slug: string; page: string };
 }) {
-  const data = await getTagPageData(params.slug, 1);
+  const page = parsePage(params.page);
+  if (page < 2) notFound();
+
+  const data = await getCategoryPageData(params.slug, page);
   if (!data) notFound();
 
-  const { tag, items, totalPages } = data;
+  const { category, items, totalPages } = data;
+  if (page > totalPages) notFound();
 
   return (
     <div className="container py-6">
@@ -92,14 +113,18 @@ export default async function TagPage({
           <Breadcrumbs
             items={[
               { href: "/", label: "Главная" },
-              { label: `Тег: ${tag.name}` },
+              { href: `/category/${category.slug}`, label: category.name },
+              { label: `Страница ${page}` },
             ]}
           />
 
           <div className="mt-4">
             <h1 className="jn-headline text-2xl font-semibold uppercase tracking-wide">
-              Тег: {tag.name}
+              {category.name}
             </h1>
+            {category.description ? (
+              <p className="mt-2 text-sm text-muted-foreground">{category.description}</p>
+            ) : null}
           </div>
 
           <div className="mt-4">
@@ -107,16 +132,16 @@ export default async function TagPage({
               items.map((n) => <NewsCardRow key={n.id} item={n} />)
             ) : (
               <div className="rounded-md border p-6 text-sm text-muted-foreground">
-                По этому тегу пока нет опубликованных новостей.
+                В этой категории пока нет опубликованных новостей.
               </div>
             )}
           </div>
 
           <PaginationLinks
-            page={1}
+            page={page}
             totalPages={totalPages}
             buildHref={(p) =>
-              p === 1 ? `/tag/${tag.slug}` : `/tag/${tag.slug}/${p}`
+              p === 1 ? `/category/${category.slug}` : `/category/${category.slug}/${p}`
             }
           />
         </div>

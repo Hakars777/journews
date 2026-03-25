@@ -7,7 +7,7 @@ import { PaginationLinks } from "@/components/site/pagination";
 import { SiteSidebar } from "@/components/site/site-sidebar";
 import { NewsCardRow } from "@/components/news/news-cards";
 import { prisma } from "@/lib/prisma";
-import { getPagination, pageCount } from "@/lib/pagination";
+import { getPagination, pageCount, parsePage } from "@/lib/pagination";
 
 export const revalidate = 300;
 
@@ -68,22 +68,26 @@ const getTagPageData = unstable_cache(
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: { slug: string; page: string };
 }): Promise<Metadata> {
   const tag = await getTagMeta(params.slug);
   if (!tag) return { title: "Тег не найден" };
-  return { title: `Тег: ${tag.name}` };
+  return { title: `Тег: ${tag.name} — страница ${params.page}` };
 }
 
-export default async function TagPage({
+export default async function TagPageN({
   params,
 }: {
-  params: { slug: string };
+  params: { slug: string; page: string };
 }) {
-  const data = await getTagPageData(params.slug, 1);
+  const page = parsePage(params.page);
+  if (page < 2) notFound();
+
+  const data = await getTagPageData(params.slug, page);
   if (!data) notFound();
 
   const { tag, items, totalPages } = data;
+  if (page > totalPages) notFound();
 
   return (
     <div className="container py-6">
@@ -92,7 +96,8 @@ export default async function TagPage({
           <Breadcrumbs
             items={[
               { href: "/", label: "Главная" },
-              { label: `Тег: ${tag.name}` },
+              { href: `/tag/${tag.slug}`, label: `Тег: ${tag.name}` },
+              { label: `Страница ${page}` },
             ]}
           />
 
@@ -113,7 +118,7 @@ export default async function TagPage({
           </div>
 
           <PaginationLinks
-            page={1}
+            page={page}
             totalPages={totalPages}
             buildHref={(p) =>
               p === 1 ? `/tag/${tag.slug}` : `/tag/${tag.slug}/${p}`

@@ -7,9 +7,11 @@ import { PaginationLinks } from "@/components/site/pagination";
 import { SiteSidebar } from "@/components/site/site-sidebar";
 import { NewsCardRow } from "@/components/news/news-cards";
 import { prisma } from "@/lib/prisma";
-import { getPagination, pageCount, parsePage } from "@/lib/pagination";
+import { getPagination, pageCount } from "@/lib/pagination";
 
 export const revalidate = 300;
+
+const PAGE_SIZE = 12;
 
 export async function generateStaticParams() {
   const categories = await prisma.category.findMany({
@@ -17,8 +19,6 @@ export async function generateStaticParams() {
   });
   return categories.map((c) => ({ slug: c.slug }));
 }
-
-const PAGE_SIZE = 12;
 
 const getCategoryMeta = unstable_cache(
   async (slug: string) =>
@@ -87,13 +87,10 @@ export async function generateMetadata({
 
 export default async function CategoryPage({
   params,
-  searchParams,
 }: {
   params: { slug: string };
-  searchParams: Record<string, string | string[] | undefined>;
 }) {
-  const page = parsePage(searchParams.page);
-  const data = await getCategoryPageData(params.slug, page);
+  const data = await getCategoryPageData(params.slug, 1);
   if (!data) notFound();
 
   const { category, items, totalPages } = data;
@@ -129,10 +126,11 @@ export default async function CategoryPage({
           </div>
 
           <PaginationLinks
-            page={page}
+            page={1}
             totalPages={totalPages}
-            basePath={`/category/${category.slug}`}
-            searchParams={searchParams}
+            buildHref={(p) =>
+              p === 1 ? `/category/${category.slug}` : `/category/${category.slug}/${p}`
+            }
           />
         </div>
 

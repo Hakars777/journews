@@ -1,16 +1,22 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { unstable_cache } from "next/cache";
 import { Separator } from "@/components/ui/separator";
 import { NewsCardBig, NewsCardRow, NewsCardSmall } from "@/components/news/news-cards";
 import { PaginationLinks } from "@/components/site/pagination";
 import { SiteSidebar } from "@/components/site/site-sidebar";
 import { prisma } from "@/lib/prisma";
-import { getPagination, pageCount } from "@/lib/pagination";
+import { getPagination, pageCount, parsePage } from "@/lib/pagination";
 
 export const revalidate = 300;
 
 const PAGE_SIZE = 10;
+
+export async function generateStaticParams() {
+  // Pre-render first 10 pages of the homepage feed
+  return Array.from({ length: 9 }, (_, i) => ({ page: String(i + 2) }));
+}
 
 const getHomePageData = unstable_cache(
   async (page: number) => {
@@ -20,16 +26,7 @@ const getHomePageData = unstable_cache(
       where: { status: "PUBLISHED", isTop: true, publishedAt: { not: null } },
       orderBy: { publishedAt: "desc" },
       take: 5,
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        lead: true,
-        coverImage: true,
-        publishedAt: true,
-        category: { select: { name: true, slug: true } },
-        author: { select: { name: true, slug: true } },
-      },
+      select: { id: true },
     });
 
     const topIds = top.map((t) => t.id);
@@ -61,56 +58,40 @@ const getHomePageData = unstable_cache(
     ]);
 
     return {
-      top,
       feed,
       totalPages: pageCount(total, PAGE_SIZE),
     };
   },
-  ["home-page"],
+  ["home-page-feed"],
   { revalidate: 300 },
 );
 
-export default async function HomePage() {
-  const { top, feed, totalPages } = await getHomePageData(1);
+export default async function HomePageN({
+  params,
+}: {
+  params: { page: string };
+}) {
+  const page = parsePage(params.page);
+  if (page < 2) notFound();
+
+  const { feed, totalPages } = await getHomePageData(page);
+  if (page > totalPages) notFound();
 
   return (
     <div className="container py-6">
       <div className="grid gap-8 lg:grid-cols-[1fr,340px]">
         <div className="min-w-0">
-          <section className="grid gap-5">
+          <section>
             <div className="flex items-center justify-between">
               <h1 className="jn-headline text-xl font-semibold uppercase tracking-wide">
-                Топ-новости
+                Лента — страница {page}
               </h1>
               <Link href="/search" className="text-sm text-muted-foreground hover:text-foreground">
                 Поиск
               </Link>
             </div>
 
-            {top.length ? (
-              <div className="grid gap-6 lg:grid-cols-[1fr,320px]">
-                <div className="min-w-0">
-                  <NewsCardBig item={top[0]} />
-                </div>
-                <div className="grid gap-4">
-                  {top.slice(1).map((t) => (
-                    <NewsCardSmall key={t.id} item={t} />
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-md border p-6 text-sm text-muted-foreground">
-                Пока нет опубликованных топ-новостей.
-              </div>
-            )}
-          </section>
-
-          <Separator className="my-8" />
-
-          <section>
-            <h2 className="jn-headline text-xl font-semibold uppercase tracking-wide">
-              Лента
-            </h2>
+            <Separator className="my-4" />
 
             <div className="mt-2">
               {feed.length ? (
@@ -123,7 +104,7 @@ export default async function HomePage() {
             </div>
 
             <PaginationLinks
-              page={1}
+              page={page}
               totalPages={totalPages}
               buildHref={(p) => (p === 1 ? "/" : `/page/${p}`)}
             />
