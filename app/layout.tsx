@@ -19,7 +19,7 @@ const fontSerif = Noto_Serif({
   display: "swap",
 });
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [faviconSetting, settings] = await Promise.all([
