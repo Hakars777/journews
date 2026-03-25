@@ -11,6 +11,13 @@ import { getPagination, pageCount, parsePage } from "@/lib/pagination";
 
 export const revalidate = 300;
 
+export async function generateStaticParams() {
+  const categories = await prisma.category.findMany({
+    select: { slug: true },
+  });
+  return categories.map((c) => ({ slug: c.slug }));
+}
+
 const PAGE_SIZE = 12;
 
 const getCategoryMeta = unstable_cache(

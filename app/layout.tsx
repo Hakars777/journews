@@ -19,6 +19,8 @@ const fontSerif = Noto_Serif({
   display: "swap",
 });
 
+export const revalidate = 3600;
+
 export async function generateMetadata(): Promise<Metadata> {
   const [faviconSetting, settings] = await Promise.all([
     prisma.siteSetting.findUnique({ where: { key: "favicon" } }).catch(() => null),

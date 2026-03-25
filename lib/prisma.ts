@@ -28,7 +28,7 @@ function createPrismaClient(): PrismaClient {
     const { PrismaPg } = require("@prisma/adapter-pg") as typeof import("@prisma/adapter-pg");
     const pool = new Pool({
       connectionString: url,
-      max: 2,
+      max: 5,
       idleTimeoutMillis: 10_000,
       connectionTimeoutMillis: 8_000,
     });

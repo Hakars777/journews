@@ -21,6 +21,16 @@ import { toAbsoluteMediaUrl } from "@/lib/uploads";
 // and still fires on every visit regardless of ISR.
 export const revalidate = 300;
 
+export async function generateStaticParams() {
+  const articles = await prisma.news.findMany({
+    where: { status: "PUBLISHED", publishedAt: { not: null } },
+    orderBy: { publishedAt: "desc" },
+    take: 100,
+    select: { slug: true },
+  });
+  return articles.map((a) => ({ slug: a.slug }));
+}
+
 function toIsoDateTime(value: Date | string | null | undefined) {
   if (!value) return undefined;
   const date = value instanceof Date ? value : new Date(value);
@@ -175,7 +185,7 @@ export default async function NewsPage({ params }: { params: { slug: string } })
 
           {news.coverImage ? (
             <div className="mt-5 relative aspect-[16/9] overflow-hidden rounded-md bg-muted">
-              <Image src={news.coverImage} alt={news.title} fill className="object-cover" priority />
+              <Image src={news.coverImage} alt={news.title} fill className="object-cover" priority sizes="(max-width: 1024px) 100vw, calc(100vw - 380px)" />
             </div>
           ) : null}
 

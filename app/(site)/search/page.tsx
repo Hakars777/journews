@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { PaginationLinks } from "@/components/site/pagination";
 import { SiteSidebar } from "@/components/site/site-sidebar";
@@ -109,7 +110,9 @@ export default async function SearchPage({
           ) : null}
         </div>
 
-        <SiteSidebar />
+        <Suspense>
+          <SiteSidebar />
+        </Suspense>
       </div>
     </div>
   );
