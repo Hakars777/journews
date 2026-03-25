@@ -21,7 +21,7 @@ const fontSerif = Noto_Serif({
 
 export async function generateMetadata(): Promise<Metadata> {
   const faviconSetting = await prisma.siteSetting.findUnique({ where: { key: "favicon" } }).catch(() => null);
-  const favicon = faviconSetting?.value;
+  const hasFavicon = !!faviconSetting?.value;
 
   return {
     metadataBase: new URL(getBaseUrl()),
@@ -30,7 +30,9 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${SITE_NAME}`,
     },
     description: SITE_DESCRIPTION,
-    icons: favicon ? { icon: favicon, shortcut: favicon, apple: favicon } : undefined,
+    icons: hasFavicon
+      ? { icon: "/api/favicon", shortcut: "/api/favicon", apple: "/api/favicon" }
+      : undefined,
     openGraph: {
       type: "website",
       siteName: SITE_NAME,
