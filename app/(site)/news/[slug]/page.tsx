@@ -114,6 +114,7 @@ export default async function NewsPage({ params }: { params: { slug: string } })
   if (!data) notFound();
 
   const { news, similar } = data;
+  const pageUrl = `${getBaseUrl()}/news/${slug}`;
   const tags = news.tags.map((t) => t.tag);
   const gallery = Array.isArray(news.galleryImages)
     ? news.galleryImages.filter((x): x is string => typeof x === "string" && x.length > 0)
@@ -202,7 +203,7 @@ export default async function NewsPage({ params }: { params: { slug: string } })
           ) : null}
 
           <div className="mt-6">
-            <ShareButtons title={news.title} />
+            <ShareButtons title={news.title} url={pageUrl} />
           </div>
 
           {similar.length ? (
