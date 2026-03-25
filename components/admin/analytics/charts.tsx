@@ -46,7 +46,7 @@ export function ViewsChart({ data }: { data: DayCount[] }) {
             fontSize: 12,
           }}
           labelStyle={{ color: "hsl(var(--foreground))" }}
-          formatter={(v: number) => [v, "просмотры"]}
+          formatter={(v) => [v, "просмотры"]}
         />
         <Area
           type="monotone"
@@ -86,7 +86,7 @@ export function PublishedChart({ data }: { data: DayCount[] }) {
             fontSize: 12,
           }}
           labelStyle={{ color: "hsl(var(--foreground))" }}
-          formatter={(v: number) => [v, "публикации"]}
+          formatter={(v) => [v, "публикации"]}
         />
         <Bar dataKey="count" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} maxBarSize={24} />
       </BarChart>
@@ -125,7 +125,7 @@ export function CategoryChart({ data }: { data: { name: string; count: number }[
             borderRadius: "6px",
             fontSize: 12,
           }}
-          formatter={(v: number) => [v, "статей"]}
+          formatter={(v) => [v, "статей"]}
         />
         <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 3, 3, 0]} maxBarSize={18} />
       </BarChart>
