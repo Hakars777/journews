@@ -26,7 +26,10 @@ export async function generateMetadata(): Promise<Metadata> {
     prisma.siteSetting.findUnique({ where: { key: "favicon" } }).catch(() => null),
     getSiteSettings(),
   ]);
-  const hasFavicon = !!faviconSetting?.value;
+  const faviconV = faviconSetting?.updatedAt
+    ? `?v=${new Date(faviconSetting.updatedAt).getTime()}`
+    : "";
+  const faviconUrl = faviconSetting?.value ? `/api/favicon${faviconV}` : null;
 
   return {
     metadataBase: new URL(getBaseUrl()),
@@ -35,8 +38,8 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${settings.name}`,
     },
     description: settings.description,
-    icons: hasFavicon
-      ? { icon: "/api/favicon", shortcut: "/api/favicon", apple: "/api/favicon" }
+    icons: faviconUrl
+      ? { icon: faviconUrl, shortcut: faviconUrl, apple: faviconUrl }
       : undefined,
     openGraph: {
       type: "website",
