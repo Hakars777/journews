@@ -7,6 +7,7 @@ import { PaginationLinks } from "@/components/site/pagination";
 import { SiteSidebar } from "@/components/site/site-sidebar";
 import { prisma } from "@/lib/prisma";
 import { getPagination, pageCount, parsePage } from "@/lib/pagination";
+import { timed } from "@/lib/perf";
 
 export const revalidate = 300;
 
@@ -16,37 +17,11 @@ const getHomePageData = unstable_cache(
   async (page: number) => {
     const { skip, take } = getPagination(page, PAGE_SIZE);
 
-    const top = await prisma.news.findMany({
-      where: { status: "PUBLISHED", isTop: true, publishedAt: { not: null } },
-      orderBy: { publishedAt: "desc" },
-      take: 5,
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        lead: true,
-        coverImage: true,
-        publishedAt: true,
-        category: { select: { name: true, slug: true } },
-        author: { select: { name: true, slug: true } },
-      },
-    });
-
-    const topIds = top.map((t) => t.id);
-
-    const feedWhere = {
-      status: "PUBLISHED" as const,
-      publishedAt: { not: null },
-      ...(topIds.length ? { id: { notIn: topIds } } : {}),
-    };
-
-    const [total, feed] = await Promise.all([
-      prisma.news.count({ where: feedWhere }),
+    const top = await timed("home:top", () =>
       prisma.news.findMany({
-        where: feedWhere,
+        where: { status: "PUBLISHED", isTop: true, publishedAt: { not: null } },
         orderBy: { publishedAt: "desc" },
-        skip,
-        take,
+        take: 5,
         select: {
           id: true,
           slug: true,
@@ -58,7 +33,37 @@ const getHomePageData = unstable_cache(
           author: { select: { name: true, slug: true } },
         },
       }),
-    ]);
+    );
+
+    const topIds = top.map((t) => t.id);
+
+    const feedWhere = {
+      status: "PUBLISHED" as const,
+      publishedAt: { not: null },
+      ...(topIds.length ? { id: { notIn: topIds } } : {}),
+    };
+
+    const [total, feed] = await timed("home:feed+count", () =>
+      Promise.all([
+        prisma.news.count({ where: feedWhere }),
+        prisma.news.findMany({
+          where: feedWhere,
+          orderBy: { publishedAt: "desc" },
+          skip,
+          take,
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+            lead: true,
+            coverImage: true,
+            publishedAt: true,
+            category: { select: { name: true, slug: true } },
+            author: { select: { name: true, slug: true } },
+          },
+        }),
+      ]),
+    );
 
     return {
       top,

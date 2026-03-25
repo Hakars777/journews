@@ -15,6 +15,7 @@ import { SITE_NAME, getBaseUrl } from "@/lib/site";
 import { Suspense } from "react";
 import { SiteSidebar } from "@/components/site/site-sidebar";
 import { toAbsoluteMediaUrl } from "@/lib/uploads";
+import { timed } from "@/lib/perf";
 
 // Cache individual articles for 5 min. ViewTracker is a client component
 // and still fires on every visit regardless of ISR.
@@ -36,38 +37,42 @@ const getNewsPageData = unstable_cache(
 );
 
 async function fetchNewsPageData(slug: string) {
-  const news = await prisma.news.findFirst({
-    where: { slug, status: "PUBLISHED", publishedAt: { not: null } },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      lead: true,
-      contentHtml: true,
-      coverImage: true,
-      galleryImages: true,
-      publishedAt: true,
-      sourceName: true,
-      sourceUrl: true,
-      category: { select: { name: true, slug: true } },
-      author: { select: { name: true, slug: true } },
-      tags: { select: { tag: { select: { id: true, name: true, slug: true } } } },
-    },
-  });
+  const news = await timed(`news-page:findFirst(${slug.slice(0, 30)})`, () =>
+    prisma.news.findFirst({
+      where: { slug, status: "PUBLISHED", publishedAt: { not: null } },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        lead: true,
+        contentHtml: true,
+        coverImage: true,
+        galleryImages: true,
+        publishedAt: true,
+        sourceName: true,
+        sourceUrl: true,
+        category: { select: { name: true, slug: true } },
+        author: { select: { name: true, slug: true } },
+        tags: { select: { tag: { select: { id: true, name: true, slug: true } } } },
+      },
+    }),
+  );
 
   if (!news) return null;
 
-  const similar = await prisma.news.findMany({
-    where: {
-      status: "PUBLISHED",
-      publishedAt: { not: null },
-      ...(news.category ? { category: { slug: news.category.slug } } : {}),
-      NOT: { id: news.id },
-    },
-    orderBy: { publishedAt: "desc" },
-    take: 6,
-    select: { id: true, slug: true, title: true, publishedAt: true },
-  });
+  const similar = await timed("news-page:similar", () =>
+    prisma.news.findMany({
+      where: {
+        status: "PUBLISHED",
+        publishedAt: { not: null },
+        ...(news.category ? { category: { slug: news.category.slug } } : {}),
+        NOT: { id: news.id },
+      },
+      orderBy: { publishedAt: "desc" },
+      take: 6,
+      select: { id: true, slug: true, title: true, publishedAt: true },
+    }),
+  );
 
   return { news, similar };
 }
