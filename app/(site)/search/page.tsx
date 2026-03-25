@@ -6,8 +6,9 @@ import { SiteSidebar } from "@/components/site/site-sidebar";
 import { NewsCardRow } from "@/components/news/news-cards";
 import { Input } from "@/components/ui/input";
 import { prisma } from "@/lib/prisma";
+import { isPostgres } from "@/lib/db";
 import { getPagination, pageCount, parsePage } from "@/lib/pagination";
-import { buildNewsSearchWhere } from "@/lib/search";
+import { buildNewsSearchWhere, searchNewsByFts } from "@/lib/search";
 
 export const dynamic = "force-dynamic";
 
@@ -32,33 +33,47 @@ export default async function SearchPage({
   const page = parsePage(searchParams.page);
   const { skip, take } = getPagination(page, PAGE_SIZE);
 
-  const where = {
-    status: "PUBLISHED" as const,
-    publishedAt: { not: null },
-    ...buildNewsSearchWhere(q),
-  };
+  const newsSelect = {
+    id: true,
+    slug: true,
+    title: true,
+    lead: true,
+    coverImage: true,
+    publishedAt: true,
+    category: { select: { name: true, slug: true } },
+    author: { select: { name: true, slug: true } },
+  } as const;
 
-  const [total, items] = q
-    ? await Promise.all([
+  let total = 0;
+  let items: Awaited<ReturnType<typeof prisma.news.findMany<{ select: typeof newsSelect }>>> = [];
+
+  if (q) {
+    if (isPostgres()) {
+      // Full-text search via PostgreSQL tsvector (production / Supabase)
+      const { ids, total: ftsTotal } = await searchNewsByFts(q, skip, take);
+      total = ftsTotal;
+      if (ids.length) {
+        const found = await prisma.news.findMany({
+          where: { id: { in: ids } },
+          select: newsSelect,
+        });
+        // Preserve relevance order returned by FTS
+        const map = new Map(found.map((n) => [n.id, n]));
+        items = ids.map((id) => map.get(id)).filter(Boolean) as typeof found;
+      }
+    } else {
+      // ILIKE fallback for SQLite in local dev
+      const where = {
+        status: "PUBLISHED" as const,
+        publishedAt: { not: null },
+        ...buildNewsSearchWhere(q),
+      };
+      [total, items] = await Promise.all([
         prisma.news.count({ where }),
-        prisma.news.findMany({
-          where,
-          orderBy: { publishedAt: "desc" },
-          skip,
-          take,
-          select: {
-            id: true,
-            slug: true,
-            title: true,
-            lead: true,
-            coverImage: true,
-            publishedAt: true,
-            category: { select: { name: true, slug: true } },
-            author: { select: { name: true, slug: true } },
-          },
-        }),
-      ])
-    : [0, []];
+        prisma.news.findMany({ where, orderBy: { publishedAt: "desc" }, skip, take, select: newsSelect }),
+      ]);
+    }
+  }
 
   const totalPages = pageCount(total, PAGE_SIZE);
 
