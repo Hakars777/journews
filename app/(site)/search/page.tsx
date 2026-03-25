@@ -119,8 +119,11 @@ export default async function SearchPage({
             <PaginationLinks
               page={page}
               totalPages={totalPages}
-              basePath="/search"
-              searchParams={searchParams}
+              buildHref={(p) => {
+                const sp = new URLSearchParams({ q });
+                if (p > 1) sp.set("page", String(p));
+                return `/search?${sp.toString()}`;
+              }}
             />
           ) : null}
         </div>
