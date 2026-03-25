@@ -14,7 +14,6 @@ function resolveRawDatabaseUrl(): string {
 }
 
 function createPrismaClient(): PrismaClient {
-  const t0 = performance.now();
   const url = resolveRawDatabaseUrl();
 
   if (/^postgres(?:ql)?:\/\//i.test(url)) {
@@ -34,12 +33,10 @@ function createPrismaClient(): PrismaClient {
     });
     // @ts-ignore – adapter property is present when client is generated from the
     // postgres schema; suppressed here so local sqlite builds don't fail.
-    const client = new PrismaClient({
+    return new PrismaClient({
       adapter: new PrismaPg(pool),
       log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
     });
-    console.log(`[perf] PrismaClient created (cold start) — ${(performance.now() - t0).toFixed(0)}ms`);
-    return client;
   }
 
   // SQLite – local dev only

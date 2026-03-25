@@ -4,18 +4,15 @@ import { unstable_cache } from "next/cache";
 import { Input } from "@/components/ui/input";
 import { prisma } from "@/lib/prisma";
 import { SITE_NAME } from "@/lib/site";
-import { timed } from "@/lib/perf";
 import { LogoLink } from "@/components/site/logo-link";
 
 const getHeaderCategories = unstable_cache(
   async () =>
-    timed("header:categories", () =>
-      prisma.category.findMany({
-        orderBy: { name: "asc" },
-        take: 7,
-        select: { id: true, name: true, slug: true },
-      }),
-    ),
+    prisma.category.findMany({
+      orderBy: { name: "asc" },
+      take: 7,
+      select: { id: true, name: true, slug: true },
+    }),
   ["site-header-categories-v2"],
   { revalidate: 300 },
 );

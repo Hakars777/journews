@@ -2,55 +2,48 @@ import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import { NewsCardSmall } from "@/components/news/news-cards";
 import { prisma } from "@/lib/prisma";
-import { timed } from "@/lib/perf";
 
 const getSidebarData = unstable_cache(
   async () => {
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    const [popularAgg, latest, editorsPick, categories] = await timed(
-      "sidebar:4-parallel",
-      () =>
-        Promise.all([
-          prisma.newsView.groupBy({
-            by: ["newsId"],
-            where: { createdAt: { gte: sevenDaysAgo } },
-            _count: { newsId: true },
-            orderBy: { _count: { newsId: "desc" } },
-            take: 5,
-          }),
-          prisma.news.findMany({
-            where: { status: "PUBLISHED", publishedAt: { not: null } },
-            orderBy: { publishedAt: "desc" },
-            take: 5,
-            select: { id: true, slug: true, title: true, publishedAt: true },
-          }),
-          prisma.news.findMany({
-            where: { status: "PUBLISHED", isEditorsPick: true, publishedAt: { not: null } },
-            orderBy: { publishedAt: "desc" },
-            take: 5,
-            select: { id: true, slug: true, title: true, publishedAt: true },
-          }),
-          prisma.category.findMany({
-            orderBy: { name: "asc" },
-            select: { id: true, name: true, slug: true },
-          }),
-        ]),
-    );
+    const [popularAgg, latest, editorsPick, categories] = await Promise.all([
+      prisma.newsView.groupBy({
+        by: ["newsId"],
+        where: { createdAt: { gte: sevenDaysAgo } },
+        _count: { newsId: true },
+        orderBy: { _count: { newsId: "desc" } },
+        take: 5,
+      }),
+      prisma.news.findMany({
+        where: { status: "PUBLISHED", publishedAt: { not: null } },
+        orderBy: { publishedAt: "desc" },
+        take: 5,
+        select: { id: true, slug: true, title: true, publishedAt: true },
+      }),
+      prisma.news.findMany({
+        where: { status: "PUBLISHED", isEditorsPick: true, publishedAt: { not: null } },
+        orderBy: { publishedAt: "desc" },
+        take: 5,
+        select: { id: true, slug: true, title: true, publishedAt: true },
+      }),
+      prisma.category.findMany({
+        orderBy: { name: "asc" },
+        select: { id: true, name: true, slug: true },
+      }),
+    ]);
 
     const popularIds = popularAgg.map((x) => x.newsId);
     const popularNews = popularIds.length
-      ? await timed("sidebar:popularNews", () =>
-          prisma.news.findMany({
-            where: {
-              id: { in: popularIds },
-              status: "PUBLISHED",
-              publishedAt: { not: null },
-            },
-            select: { id: true, slug: true, title: true, publishedAt: true },
-          }),
-        )
+      ? await prisma.news.findMany({
+          where: {
+            id: { in: popularIds },
+            status: "PUBLISHED",
+            publishedAt: { not: null },
+          },
+          select: { id: true, slug: true, title: true, publishedAt: true },
+        })
       : [];
     const popularById = new Map(popularNews.map((n) => [n.id, n]));
     const popularOrdered = popularIds
