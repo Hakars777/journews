@@ -68,7 +68,9 @@ export default async function AdminTagsPage({
                       {t.name}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{t.slug}</TableCell>
+                  <TableCell className="max-w-[240px] truncate text-sm text-muted-foreground">
+                    {(() => { try { return decodeURIComponent(t.slug); } catch { return t.slug; } })()}
+                  </TableCell>
                   <TableCell className="text-right">{t._count.news}</TableCell>
                   <TableCell className="text-right">
                     <ConfirmActionForm
