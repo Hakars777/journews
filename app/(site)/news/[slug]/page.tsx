@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
+import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { NewsCardSmall } from "@/components/news/news-cards";
@@ -47,6 +48,7 @@ async function fetchNewsPageData(slug: string) {
       coverImage: true,
       galleryImages: true,
       publishedAt: true,
+      views: true,
       sourceName: true,
       sourceUrl: true,
       category: { select: { name: true, slug: true } },
@@ -149,6 +151,11 @@ export default async function NewsPage({ params }: { params: { slug: string } })
               {news.publishedAt ? <span>{formatDateTime(news.publishedAt)}</span> : null}
               <span>•</span>
               <span>{news.author.name}</span>
+              <span>•</span>
+              <span className="inline-flex items-center gap-1">
+                <Eye className="h-3.5 w-3.5" />
+                {news.views.toLocaleString("ru-RU")}
+              </span>
             </div>
 
             {tags.length ? (
