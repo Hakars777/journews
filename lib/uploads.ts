@@ -197,7 +197,7 @@ export async function saveImageUpload(file: File, folder = "news") {
   if (file.size > MAX_BYTES) throw new Error("File is too large (max 10MB).");
 
   const { buffer, ext, mime } = await compressImage(file);
-  const compressed = new File([buffer], `upload${ext}`, { type: mime });
+  const compressed = new File([new Uint8Array(buffer)], `upload${ext}`, { type: mime });
 
   return getSupabaseEnv()
     ? saveSupabaseImageUpload(compressed, folder)
