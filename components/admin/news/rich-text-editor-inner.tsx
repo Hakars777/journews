@@ -8,6 +8,7 @@ import Image from "@tiptap/extension-image";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { RichTextEditorProps } from "./rich-text-editor";
+import { VideoEmbed, getVideoEmbedUrl } from "./video-embed-extension";
 
 export function RichTextEditorInner({
   initialHtml,
@@ -20,6 +21,7 @@ export function RichTextEditorInner({
       StarterKit,
       Link.configure({ openOnClick: false }),
       Image.configure({ inline: false }),
+      VideoEmbed,
     ],
     content: initialHtml,
     editorProps: {
@@ -104,6 +106,24 @@ export function RichTextEditorInner({
           onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
         >
           Clear
+        </Button>
+        <Separator orientation="vertical" className="mx-1 h-6" />
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            const url = window.prompt("YouTube или Vimeo ссылка:");
+            if (!url) return;
+            const embedUrl = getVideoEmbedUrl(url);
+            if (!embedUrl) {
+              window.alert("Ссылка не распознана. Поддерживается YouTube и Vimeo.");
+              return;
+            }
+            editor.chain().focus().insertContent({ type: "videoEmbed", attrs: { src: embedUrl } }).run();
+          }}
+        >
+          Video
         </Button>
       </div>
 
