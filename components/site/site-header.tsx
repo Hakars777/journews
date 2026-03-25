@@ -3,7 +3,7 @@ import { Search } from "lucide-react";
 import { unstable_cache } from "next/cache";
 import { Input } from "@/components/ui/input";
 import { prisma } from "@/lib/prisma";
-import { SITE_NAME } from "@/lib/site";
+import { getSiteSettings } from "@/lib/site";
 import { LogoLink } from "@/components/site/logo-link";
 
 const getHeaderCategories = unstable_cache(
@@ -18,12 +18,12 @@ const getHeaderCategories = unstable_cache(
 );
 
 export async function SiteHeader() {
-  const categories = await getHeaderCategories();
+  const [categories, settings] = await Promise.all([getHeaderCategories(), getSiteSettings()]);
 
   return (
     <header className="border-b bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="container flex h-14 items-center gap-4">
-        <LogoLink name={SITE_NAME} />
+        <LogoLink name={settings.name} />
 
         <nav className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
           {categories.map((c) => (

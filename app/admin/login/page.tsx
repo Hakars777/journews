@@ -3,12 +3,15 @@ import { LoginForm } from "@/components/admin/login-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getServerAuthSession } from "@/lib/auth";
 import { EDIT_ROLES, isRoleAllowed } from "@/lib/roles";
-import { SITE_NAME } from "@/lib/site";
+import { getSiteSettings } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminLoginPage() {
-  const session = await getServerAuthSession();
+  const [session, settings] = await Promise.all([
+    getServerAuthSession(),
+    getSiteSettings(),
+  ]);
   if (session?.user && isRoleAllowed(session.user.role, EDIT_ROLES)) {
     redirect("/admin");
   }
@@ -18,7 +21,7 @@ export default async function AdminLoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="jn-headline text-xl font-semibold">
-            Вход в админку {SITE_NAME}
+            Вход в админку {settings.name}
           </CardTitle>
         </CardHeader>
         <CardContent>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { SITE_DESCRIPTION, SITE_NAME, getBaseUrl } from "@/lib/site";
+import { getBaseUrl, getSiteSettings } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +10,7 @@ function cdata(s: string) {
 
 export async function GET() {
   const baseUrl = getBaseUrl();
+  const settings = await getSiteSettings();
 
   const items = await prisma.news.findMany({
     where: { status: "PUBLISHED", publishedAt: { not: null } },
@@ -30,9 +31,9 @@ export async function GET() {
     `<?xml version="1.0" encoding="UTF-8"?>` +
     `<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">` +
     `<channel>` +
-    `<title>${cdata(SITE_NAME)}</title>` +
+    `<title>${cdata(settings.name)}</title>` +
     `<link>${baseUrl}</link>` +
-    `<description>${cdata(SITE_DESCRIPTION)}</description>` +
+    `<description>${cdata(settings.description)}</description>` +
     `<language>ru</language>` +
     `<atom:link href="${baseUrl}/rss.xml" rel="self" type="application/rss+xml" />` +
     `<lastBuildDate>${now.toUTCString()}</lastBuildDate>` +

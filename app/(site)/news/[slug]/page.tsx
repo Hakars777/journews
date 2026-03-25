@@ -11,7 +11,7 @@ import { ShareButtons } from "@/components/news/share-buttons";
 import { ViewTracker } from "@/components/news/view-tracker";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/format";
-import { SITE_NAME, getBaseUrl } from "@/lib/site";
+import { getBaseUrl, getSiteSettings } from "@/lib/site";
 import { Suspense } from "react";
 import { SiteSidebar } from "@/components/site/site-sidebar";
 import { toAbsoluteMediaUrl } from "@/lib/uploads";
@@ -85,6 +85,7 @@ export async function generateMetadata({
   const url = `${baseUrl}/news/${params.slug}`;
   const image = toAbsoluteMediaUrl(news.coverImage, baseUrl);
   const publishedTime = toIsoDateTime(news.publishedAt);
+  const settings = await getSiteSettings();
 
   return {
     title: news.title,
@@ -94,7 +95,7 @@ export async function generateMetadata({
       url,
       title: news.title,
       description: news.lead,
-      siteName: SITE_NAME,
+      siteName: settings.name,
       publishedTime,
       images: image ? [{ url: image }] : undefined,
     },

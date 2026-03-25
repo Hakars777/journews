@@ -1,18 +1,19 @@
 import Link from "next/link";
 import { UserRole } from "@prisma/client";
 import { SignOutButton } from "@/components/admin/sign-out-button";
-import { SITE_NAME } from "@/lib/site";
+import { getSiteSettings } from "@/lib/site";
 
-export function AdminTopbar({
+export async function AdminTopbar({
   role,
 }: {
   role: UserRole;
 }) {
+  const settings = await getSiteSettings();
   return (
     <header className="sticky top-0 z-10 border-b bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70 lg:hidden">
       <div className="container flex h-14 items-center gap-3">
         <Link href="/" className="jn-headline font-semibold uppercase tracking-wide">
-          {SITE_NAME}
+          {settings.name}
         </Link>
         <div className="ml-auto">
           <SignOutButton />

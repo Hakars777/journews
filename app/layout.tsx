@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans, Noto_Serif } from "next/font/google";
 import { cn } from "@/lib/utils";
-import { SITE_DESCRIPTION, SITE_NAME, getBaseUrl } from "@/lib/site";
+import { getBaseUrl, getSiteSettings } from "@/lib/site";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
 import { prisma } from "@/lib/prisma";
@@ -20,29 +20,32 @@ const fontSerif = Noto_Serif({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const faviconSetting = await prisma.siteSetting.findUnique({ where: { key: "favicon" } }).catch(() => null);
+  const [faviconSetting, settings] = await Promise.all([
+    prisma.siteSetting.findUnique({ where: { key: "favicon" } }).catch(() => null),
+    getSiteSettings(),
+  ]);
   const hasFavicon = !!faviconSetting?.value;
 
   return {
     metadataBase: new URL(getBaseUrl()),
     title: {
-      default: SITE_NAME,
-      template: `%s | ${SITE_NAME}`,
+      default: settings.name,
+      template: `%s | ${settings.name}`,
     },
-    description: SITE_DESCRIPTION,
+    description: settings.description,
     icons: hasFavicon
       ? { icon: "/api/favicon", shortcut: "/api/favicon", apple: "/api/favicon" }
       : undefined,
     openGraph: {
       type: "website",
-      siteName: SITE_NAME,
-      title: SITE_NAME,
-      description: SITE_DESCRIPTION,
+      siteName: settings.name,
+      title: settings.name,
+      description: settings.description,
     },
     twitter: {
       card: "summary_large_image",
-      title: SITE_NAME,
-      description: SITE_DESCRIPTION,
+      title: settings.name,
+      description: settings.description,
     },
   };
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { UserRole } from "@prisma/client";
 import { cn } from "@/lib/utils";
 import { SignOutButton } from "@/components/admin/sign-out-button";
-import { SITE_NAME } from "@/lib/site";
+import { getSiteSettings } from "@/lib/site";
 
 const nav = [
   { href: "/admin", label: "Дашборд" },
@@ -12,19 +12,20 @@ const nav = [
   { href: "/admin/authors", label: "Авторы" },
 ];
 
-export function AdminSidebar({
+export async function AdminSidebar({
   role,
   email,
 }: {
   role: UserRole;
   email: string;
 }) {
+  const settings = await getSiteSettings();
   return (
     <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:bg-background">
       <div className="flex h-14 items-center gap-2 border-b px-4">
         <span className="h-3 w-3 rounded-sm bg-primary" aria-hidden />
         <Link href="/" className="jn-headline font-semibold uppercase tracking-wide">
-          {SITE_NAME}
+          {settings.name}
         </Link>
       </div>
 
