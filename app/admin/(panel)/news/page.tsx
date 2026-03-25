@@ -189,8 +189,17 @@ export default async function AdminNewsListPage({
           <PaginationLinks
             page={page}
             totalPages={totalPages}
-            basePath="/admin/news"
-            searchParams={searchParams}
+            buildHref={(p) => {
+              const sp = new URLSearchParams();
+              if (q) sp.set("q", q);
+              if (status) sp.set("status", status);
+              if (categoryId) sp.set("categoryId", categoryId);
+              if (authorId) sp.set("authorId", authorId);
+              if (sort) sp.set("sort", sort);
+              if (p > 1) sp.set("page", String(p));
+              const qs = sp.toString();
+              return qs ? `/admin/news?${qs}` : "/admin/news";
+            }}
           />
         </CardContent>
       </Card>
