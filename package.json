@@ -16,6 +16,7 @@
     "db:migrate": "node scripts/prisma.mjs migrate dev --skip-seed",
     "db:seed": "node scripts/prisma.mjs db seed",
     "db:studio": "node scripts/prisma.mjs studio",
+    "media:migrate:r2": "node scripts/migrate-supabase-media-to-r2.mjs",
     "postinstall": "npm run prisma:generate",
     "wp:import": "node --env-file=.env scripts/wp-import.mjs"
   },
