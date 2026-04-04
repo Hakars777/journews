@@ -18,3 +18,13 @@ export function formatDate(dt: Date | string | number | null | undefined) {
   if (!value) return "";
   return format(value, "dd.MM.yyyy");
 }
+
+export function readingTime(html: string | null | undefined): string {
+  if (!html) return "";
+  const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const words = text.split(" ").filter((w) => w.length > 0).length;
+  const minutes = Math.max(1, Math.round(words / 200));
+  if (minutes === 1) return "1 мин чтения";
+  if (minutes < 5) return `${minutes} мин чтения`;
+  return `${minutes} мин чтения`;
+}

@@ -11,7 +11,7 @@ import { NewsContent } from "@/components/news/news-content";
 import { ShareButtons } from "@/components/news/share-buttons";
 import { ViewTracker } from "@/components/news/view-tracker";
 import { prisma } from "@/lib/prisma";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, readingTime } from "@/lib/format";
 import { getBaseUrl, getSiteSettings } from "@/lib/site";
 import { Suspense } from "react";
 import { SiteSidebar } from "@/components/site/site-sidebar";
@@ -162,12 +162,20 @@ export default async function NewsPage({ params }: { params: { slug: string } })
               ) : null}
               {news.publishedAt ? <span>{formatDateTime(news.publishedAt)}</span> : null}
               <span>•</span>
-              <span>{news.author.name}</span>
+              <Link href={`/author/${news.author.slug}`} className="hover:text-foreground hover:underline">
+                {news.author.name}
+              </Link>
               <span>•</span>
               <span className="inline-flex items-center gap-1">
                 <Eye className="h-3.5 w-3.5" />
                 {news.views.toLocaleString("ru-RU")}
               </span>
+              {readingTime(news.contentHtml) ? (
+                <>
+                  <span>•</span>
+                  <span>{readingTime(news.contentHtml)}</span>
+                </>
+              ) : null}
             </div>
 
             {tags.length ? (
