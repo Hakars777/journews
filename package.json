@@ -20,6 +20,7 @@
     "wp:import": "node --env-file=.env scripts/wp-import.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1024.0",
     "@hookform/resolvers": "^5.2.2",
     "@next-auth/prisma-adapter": "^1.0.7",
     "@prisma/adapter-pg": "^6.19.2",

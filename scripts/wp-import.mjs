@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { PrismaClient } from "@prisma/client";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { createClient } from "@supabase/supabase-js";
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
@@ -16,6 +17,7 @@ const PER_PAGE    = 100;
 // ─────────────────────────────────────────────────────────────────────────────
 
 const prisma = new PrismaClient();
+const MEDIA_STORAGE_PROVIDER = (process.env.MEDIA_STORAGE_PROVIDER || "").trim().toLowerCase();
 
 const supabase =
   process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -23,6 +25,31 @@ const supabase =
     : null;
 
 const BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "media";
+const R2_BUCKET = process.env.R2_BUCKET || "media";
+const R2_PUBLIC_URL = (process.env.R2_PUBLIC_URL || "").replace(/\/+$/, "");
+const r2 =
+  process.env.R2_ENDPOINT && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY && R2_PUBLIC_URL
+    ? new S3Client({
+        region: process.env.R2_REGION || "auto",
+        endpoint: process.env.R2_ENDPOINT.replace(/\/+$/, ""),
+        forcePathStyle: true,
+        credentials: {
+          accessKeyId: process.env.R2_ACCESS_KEY_ID,
+          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+        },
+      })
+    : null;
+
+function getStorageMode() {
+  if (MEDIA_STORAGE_PROVIDER === "r2") return r2 ? "r2" : "external";
+  if (MEDIA_STORAGE_PROVIDER === "supabase") return supabase ? "supabase" : "external";
+  if (MEDIA_STORAGE_PROVIDER === "local") return "external";
+  if (r2) return "r2";
+  if (supabase) return "supabase";
+  return "external";
+}
+
+const storageMode = getStorageMode();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -44,7 +71,7 @@ function sleep(ms) {
 }
 
 async function uploadImageFromUrl(imageUrl, folder = "news/cover") {
-  if (SKIP_IMAGES || !supabase) return imageUrl;
+  if (SKIP_IMAGES || storageMode === "external") return imageUrl;
   try {
     const res = await fetch(imageUrl, { signal: AbortSignal.timeout(20000) });
     if (!res.ok) return imageUrl;
@@ -56,11 +83,30 @@ async function uploadImageFromUrl(imageUrl, folder = "news/cover") {
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const rand = Math.random().toString(36).slice(2, 12);
     const path = `${folder}/${year}/${month}/${rand}.${ext}`;
-    const { error } = await supabase.storage
-      .from(BUCKET)
-      .upload(path, buffer, { contentType, cacheControl: "31536000", upsert: false });
-    if (error) { process.stdout.write("(img-err) "); return imageUrl; }
-    return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+
+    if (storageMode === "r2" && r2) {
+      await r2.send(
+        new PutObjectCommand({
+          Bucket: R2_BUCKET,
+          Key: path,
+          Body: Buffer.from(buffer),
+          ContentType: contentType,
+          CacheControl: "public, max-age=31536000, immutable",
+        }),
+      );
+      const publicPath = path.split("/").map(encodeURIComponent).join("/");
+      return `${R2_PUBLIC_URL}/${publicPath}`;
+    }
+
+    if (storageMode === "supabase" && supabase) {
+      const { error } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, buffer, { contentType, cacheControl: "31536000", upsert: false });
+      if (error) { process.stdout.write("(img-err) "); return imageUrl; }
+      return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    }
+
+    return imageUrl;
   } catch {
     return imageUrl;
   }
@@ -97,7 +143,15 @@ async function main() {
   console.log("🚀 WordPress → JourNews import");
   console.log(`   Source : ${WP_BASE_URL}`);
   console.log(`   Limit  : ${POST_LIMIT || "all"} posts`);
-  console.log(`   Images : ${SKIP_IMAGES ? "keep original URLs" : supabase ? "upload to Supabase ✓" : "keep original URLs (Supabase not configured)"}`);
+  console.log(
+    `   Images : ${SKIP_IMAGES
+      ? "keep original URLs"
+      : storageMode === "r2"
+        ? "upload to Cloudflare R2 ✓"
+        : storageMode === "supabase"
+          ? "upload to Supabase ✓"
+          : "keep original URLs (storage not configured)"}`,
+  );
   console.log();
 
   // ── Categories ─────────────────────────────────────────────────────────────

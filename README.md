@@ -12,7 +12,7 @@
 - Прод: PostgreSQL (через `DATABASE_URL`)
 - Auth: NextAuth (Credentials) + роли `admin/editor`
 - Редактор: TipTap (сохранение HTML)
-- Uploads: локально в `public/uploads`, в production рекомендуется `Supabase Storage`
+- Uploads: локально в `public/uploads`, в production рекомендуется `Cloudflare R2` (также поддерживается `Supabase Storage`)
 - SEO: metadata, OpenGraph, Twitter cards, `sitemap.xml`, `robots.txt`, `rss.xml`
 
 ## Локальный запуск (работает сразу)
@@ -49,9 +49,17 @@ npm run dev
 
 Для production-медиа на Hostinger дополнительно нужно:
 
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `SUPABASE_STORAGE_BUCKET` (обычно `media`, bucket должен быть public)
+- `MEDIA_STORAGE_PROVIDER` (`r2`, `supabase` или `local`)
+- Для Cloudflare R2:
+  - `R2_ENDPOINT`
+  - `R2_ACCESS_KEY_ID`
+  - `R2_SECRET_ACCESS_KEY`
+  - `R2_BUCKET` (обычно `media`)
+  - `R2_PUBLIC_URL` (`r2.dev` или твой custom domain)
+- Для Supabase Storage:
+  - `SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `SUPABASE_STORAGE_BUCKET` (обычно `media`, bucket должен быть public)
 
 По умолчанию в dev используется SQLite: `DATABASE_URL="file:./dev.db"`.
 
@@ -88,9 +96,12 @@ npm run dev
    - `NEXTAUTH_URL` (например `https://your-domain.tld`)
    - `NEXTAUTH_SECRET`
    - `NODE_ENV=production`
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `SUPABASE_STORAGE_BUCKET=media`
+   - `MEDIA_STORAGE_PROVIDER=r2`
+   - `R2_ENDPOINT`
+   - `R2_ACCESS_KEY_ID`
+   - `R2_SECRET_ACCESS_KEY`
+   - `R2_BUCKET=media`
+   - `R2_PUBLIC_URL`
 3. Установи зависимости и собери:
    - `npm install`
    - `npm run build`
@@ -105,6 +116,7 @@ npm run dev
 - Для Hostinger с `Build command = npm run build`:
   миграции Prisma уже встроены в `build`-скрипт (`prisma generate` + `prisma migrate deploy` + `next build`), отдельная команда не нужна.
 - Не коммить реальные `.env`, `.env.production` и `.env.hostinger` в GitHub. Используй только переменные окружения Hostinger и шаблон из `.env.example`.
-- Для production на Hostinger не храни пользовательские загрузки в `public/uploads`: при redeploy они могут пропасть. Создай публичный bucket `media` в `Supabase Storage` и укажи `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`.
+- Для production на Hostinger не храни пользовательские загрузки в `public/uploads`: при redeploy они могут пропасть. Рекомендуемый вариант — `Cloudflare R2` с публичным доменом (`R2_PUBLIC_URL`). Если удобнее, можно оставить `Supabase Storage`.
 - Локально проект по-прежнему умеет падать обратно на файловую систему `public/uploads`, если storage env не заданы.
+- Если у тебя уже есть старые картинки в Supabase, новые загрузки можно переключить на R2 без переписывания админки: проект умеет работать с обоими провайдерами по env.
 - Старые записи, которые уже ссылаются на `/uploads/...`, не восстановятся автоматически, если файлы уже исчезли с Hostinger. Такие изображения нужно загрузить заново через админку.

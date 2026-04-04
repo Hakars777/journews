@@ -17,6 +17,9 @@ export async function GET() {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL ? "set" : "(not set)",
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ? "set" : "(not set)",
     DATABASE_URL: maskedDbUrl,
+    MEDIA_STORAGE_PROVIDER: process.env.MEDIA_STORAGE_PROVIDER || "(auto)",
+    R2_ENDPOINT: process.env.R2_ENDPOINT ? "set" : "(not set)",
+    R2_PUBLIC_URL: process.env.R2_PUBLIC_URL ? "set" : "(not set)",
     SUPABASE_URL: process.env.SUPABASE_URL ? "set" : "(not set)",
   };
 

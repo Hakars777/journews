@@ -40,20 +40,25 @@ class CopyServerChunksNextToRuntimePlugin {
 }
 
 const remotePatterns = [];
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-if (supabaseUrl) {
+function addRemotePatternFromUrl(value, pathnameSuffix = "/**") {
+  if (!value) return;
   try {
-    const parsed = new URL(supabaseUrl);
+    const parsed = new URL(value);
+    const basePath = parsed.pathname === "/" ? "" : parsed.pathname.replace(/\/+$/, "");
     remotePatterns.push({
       protocol: parsed.protocol.replace(":", ""),
       hostname: parsed.hostname,
       port: parsed.port,
-      pathname: "/storage/v1/object/public/**",
+      pathname: `${basePath}${pathnameSuffix}` || "/**",
     });
   } catch {
     // ignore malformed env during local setup
   }
 }
+
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+addRemotePatternFromUrl(supabaseUrl, "/storage/v1/object/public/**");
+addRemotePatternFromUrl(process.env.R2_PUBLIC_URL, "/**");
 
 const securityHeaders = [
   { key: "X-DNS-Prefetch-Control", value: "on" },
