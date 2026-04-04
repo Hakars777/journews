@@ -139,6 +139,71 @@ export function NewsCardRow({ item }: { item: NewsCardItem }) {
   );
 }
 
+export function NewsCardMedium({ item }: { item: NewsCardItem }) {
+  return (
+    <article className="group relative flex gap-3">
+      <Link href={`/news/${item.slug}`} className="absolute inset-0 z-0" aria-label={item.title} />
+      <Link href={`/news/${item.slug}`} className="relative z-10 shrink-0 block">
+        <Cover
+          src={item.coverImage}
+          alt={item.title}
+          className="w-28 h-[76px] sm:w-32 sm:h-[84px]"
+          sizes="128px"
+        />
+      </Link>
+      <div className="min-w-0 flex flex-col gap-1">
+        {item.category ? (
+          <Link href={`/category/${item.category.slug}`} className="relative z-10 w-fit">
+            <Badge variant="secondary" className="text-xs hover:bg-secondary/80">
+              {item.category.name}
+            </Badge>
+          </Link>
+        ) : null}
+        <h3 className="jn-headline text-sm font-semibold leading-snug group-hover:underline line-clamp-2">
+          {item.title}
+        </h3>
+        {item.publishedAt ? (
+          <span className="text-xs text-muted-foreground">
+            {formatDateTime(item.publishedAt)}
+          </span>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
+export function NewsCardGrid({ item }: { item: NewsCardItem }) {
+  return (
+    <article className="group">
+      <Link href={`/news/${item.slug}`} className="grid gap-2">
+        <Cover
+          src={item.coverImage}
+          alt={item.title}
+          className="aspect-[16/9]"
+          sizes="(max-width: 640px) 100vw, 33vw"
+        />
+        <div className="grid gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            {item.category ? (
+              <Badge variant="secondary" className="text-xs">
+                {item.category.name}
+              </Badge>
+            ) : null}
+            {item.publishedAt ? (
+              <span className="text-xs text-muted-foreground">
+                {formatDateTime(item.publishedAt)}
+              </span>
+            ) : null}
+          </div>
+          <h3 className="jn-headline text-sm font-semibold leading-snug group-hover:underline line-clamp-2">
+            {item.title}
+          </h3>
+        </div>
+      </Link>
+    </article>
+  );
+}
+
 export function NewsCardSmall({
   item,
   index,
