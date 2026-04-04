@@ -46,9 +46,32 @@ const getNewsPageData = unstable_cache(
   { revalidate: 300, tags: ["news-page"] },
 );
 
+function getSlugCandidates(slug: string) {
+  const values = new Set<string>();
+
+  if (slug) values.add(slug);
+
+  try {
+    const decoded = decodeURIComponent(slug);
+    if (decoded) values.add(decoded);
+  } catch {
+    // ignore malformed values
+  }
+
+  try {
+    const encoded = encodeURIComponent(slug);
+    if (encoded) values.add(encoded);
+  } catch {
+    // ignore malformed values
+  }
+
+  return Array.from(values);
+}
+
 async function fetchNewsPageData(slug: string) {
-  const news = await prisma.news.findFirst({
-    where: { slug, status: "PUBLISHED", publishedAt: { not: null } },
+  const slugCandidates = getSlugCandidates(slug);
+  const candidates = await prisma.news.findMany({
+    where: { slug: { in: slugCandidates }, status: "PUBLISHED", publishedAt: { not: null } },
     select: {
       id: true,
       title: true,
@@ -66,6 +89,10 @@ async function fetchNewsPageData(slug: string) {
       tags: { select: { tag: { select: { id: true, name: true, slug: true } } } },
     },
   });
+
+  const news = slugCandidates
+    .map((candidate) => candidates.find((item) => item.slug === candidate))
+    .find((item) => !!item) ?? null;
 
   if (!news) return null;
 
