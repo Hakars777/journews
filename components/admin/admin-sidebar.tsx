@@ -8,6 +8,7 @@ const nav = [
   { href: "/admin", label: "Дашборд" },
   { href: "/admin/analytics", label: "Аналитика" },
   { href: "/admin/news", label: "Новости" },
+  { href: "/admin/media", label: "Media" },
   { href: "/admin/categories", label: "Категории" },
   { href: "/admin/tags", label: "Теги" },
   { href: "/admin/authors", label: "Авторы" },

@@ -118,7 +118,7 @@ function readR2Env() {
   };
 }
 
-function getConfiguredStorageProvider(): StorageProvider {
+export function getConfiguredStorageProvider(): StorageProvider {
   const explicit = trimEnv("MEDIA_STORAGE_PROVIDER").toLowerCase();
   const supabase = readSupabaseEnv();
   const r2 = readR2Env();

@@ -27,6 +27,9 @@ export async function AdminTopbar({
           <Link href="/admin/news" className="whitespace-nowrap hover:text-foreground">
             Новости
           </Link>
+          <Link href="/admin/media" className="whitespace-nowrap hover:text-foreground">
+            Media
+          </Link>
           <Link href="/admin/categories" className="whitespace-nowrap hover:text-foreground">
             Категории
           </Link>
