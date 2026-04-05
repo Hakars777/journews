@@ -1,9 +1,18 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { saveImageUpload, deleteUploadedImage } from "@/lib/uploads";
 import { assertAdmin } from "@/lib/guard-actions";
+
+function revalidateSettingsPages() {
+  revalidateTag("site-settings");
+  revalidatePath("/", "layout");
+  revalidatePath("/admin", "layout");
+  revalidatePath("/admin/settings");
+  revalidatePath("/rss.xml");
+}
 
 export async function saveSiteNameAction(formData: FormData): Promise<void> {
   await assertAdmin();
@@ -14,8 +23,8 @@ export async function saveSiteNameAction(formData: FormData): Promise<void> {
     update: { value: name },
     create: { key: "site_name", value: name },
   });
-  revalidateTag("site-settings");
-  revalidatePath("/", "layout");
+  revalidateSettingsPages();
+  redirect(`/admin/settings?saved=name&t=${Date.now()}`);
 }
 
 export async function saveSiteDescriptionAction(formData: FormData): Promise<void> {
@@ -27,8 +36,8 @@ export async function saveSiteDescriptionAction(formData: FormData): Promise<voi
     update: { value: desc },
     create: { key: "site_description", value: desc },
   });
-  revalidateTag("site-settings");
-  revalidatePath("/", "layout");
+  revalidateSettingsPages();
+  redirect(`/admin/settings?saved=description&t=${Date.now()}`);
 }
 
 export async function saveFaviconAction(formData: FormData): Promise<void> {
@@ -50,7 +59,8 @@ export async function saveFaviconAction(formData: FormData): Promise<void> {
     create: { key: "favicon", value: url },
   });
 
-  revalidatePath("/", "layout");
+  revalidateSettingsPages();
+  redirect(`/admin/settings?saved=favicon&t=${Date.now()}`);
 }
 
 export async function deleteFaviconAction() {
@@ -60,5 +70,6 @@ export async function deleteFaviconAction() {
   if (setting?.value) await deleteUploadedImage(setting.value);
 
   await prisma.siteSetting.deleteMany({ where: { key: "favicon" } });
-  revalidatePath("/", "layout");
+  revalidateSettingsPages();
+  redirect(`/admin/settings?saved=favicon_deleted&t=${Date.now()}`);
 }

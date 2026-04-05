@@ -10,7 +10,11 @@ import { deleteUserAction } from "@/app/admin/(panel)/users/actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams?: { created?: string; deleted?: string };
+}) {
   const session = await getServerAuthSession();
   const role = session?.user?.role;
 
@@ -30,6 +34,20 @@ export default async function AdminUsersPage() {
 
   return (
     <div className="grid gap-6">
+      {searchParams?.created ? (
+        <Alert>
+          <AlertTitle>Готово</AlertTitle>
+          <AlertDescription>Пользователь создан.</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {searchParams?.deleted ? (
+        <Alert>
+          <AlertTitle>Готово</AlertTitle>
+          <AlertDescription>Пользователь удалён.</AlertDescription>
+        </Alert>
+      ) : null}
+
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="jn-headline text-2xl font-semibold uppercase tracking-wide">

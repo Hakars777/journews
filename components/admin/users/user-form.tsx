@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormSubmitButton } from "@/components/admin/form-submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -19,15 +20,22 @@ export function UserForm({
   action,
   initial,
   passwordOptional,
+  successMessage,
 }: {
   title: string;
   submitLabel: string;
   action: (prevState: FormState, formData: FormData) => Promise<FormState>;
   initial?: { email: string; name: string; role: "ADMIN" | "EDITOR" };
   passwordOptional?: boolean;
+  successMessage?: string;
 }) {
   const [rawState, formAction] = useFormState(action, initialFormState);
   const state = rawState ?? initialFormState;
+
+  useEffect(() => {
+    if (successMessage) toast.success(successMessage);
+  }, [successMessage]);
+
   useEffect(() => {
     if (state.ok === false) toast.error(state.message ?? "Ошибка");
   }, [state]);
@@ -110,7 +118,7 @@ export function UserForm({
         </Card>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit">{submitLabel}</Button>
+          <FormSubmitButton idleLabel={submitLabel} />
           <Button type="button" variant="outline" onClick={() => history.back()}>
             Назад
           </Button>

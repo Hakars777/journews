@@ -8,7 +8,13 @@ import { updateUserAction } from "@/app/admin/(panel)/users/actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminUserEditPage({ params }: { params: { id: string } }) {
+export default async function AdminUserEditPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams?: { saved?: string };
+}) {
   const session = await getServerAuthSession();
   if (!isRoleAllowed(session?.user?.role, ADMIN_ROLES)) {
     return (
@@ -38,6 +44,7 @@ export default async function AdminUserEditPage({ params }: { params: { id: stri
         name: user.name ?? "",
         role: user.role,
       }}
+      successMessage={searchParams?.saved ? "Пользователь сохранён." : undefined}
     />
   );
 }

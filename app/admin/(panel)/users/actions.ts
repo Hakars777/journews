@@ -1,6 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { assertAdmin } from "@/lib/guard-actions";
@@ -37,6 +38,12 @@ function parse(formData: FormData) {
   };
 }
 
+function revalidateUserPages() {
+  revalidatePath("/admin/users");
+  revalidatePath("/admin/users/new");
+  revalidatePath("/admin/users/[id]/edit", "page");
+}
+
 export async function createUserAction(
   _prev: UserActionState,
   formData: FormData,
@@ -61,7 +68,8 @@ export async function createUserAction(
     },
   });
 
-  redirect("/admin/users");
+  revalidateUserPages();
+  redirect("/admin/users?created=1");
 }
 
 export async function updateUserAction(
@@ -101,11 +109,13 @@ export async function updateUserAction(
   }
 
   await prisma.user.update({ where: { id: existing.id }, data });
-  redirect(`/admin/users/${existing.id}/edit`);
+  revalidateUserPages();
+  redirect(`/admin/users/${existing.id}/edit?saved=${Date.now()}`);
 }
 
 export async function deleteUserAction(id: string) {
   await assertAdmin();
   await prisma.user.delete({ where: { id } });
-  redirect("/admin/users");
+  revalidateUserPages();
+  redirect("/admin/users?deleted=1");
 }

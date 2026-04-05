@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { FormSubmitButton } from "@/components/admin/form-submit-button";
 import { prisma } from "@/lib/prisma";
 import { SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
 import {
@@ -10,7 +12,11 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminSettingsPage() {
+export default async function AdminSettingsPage({
+  searchParams,
+}: {
+  searchParams?: { saved?: string };
+}) {
   const rows = await prisma.siteSetting
     .findMany({ where: { key: { in: ["favicon", "site_name", "site_description"] } } })
     .catch(() => []);
@@ -19,9 +25,26 @@ export default async function AdminSettingsPage() {
   const faviconUrl = map["favicon"] ?? null;
   const siteName = map["site_name"] ?? SITE_NAME;
   const siteDescription = map["site_description"] ?? SITE_DESCRIPTION;
+  const successMessage =
+    searchParams?.saved === "name"
+      ? "Название сайта сохранено."
+      : searchParams?.saved === "description"
+        ? "Описание сайта сохранено."
+        : searchParams?.saved === "favicon"
+          ? "Favicon сохранён."
+          : searchParams?.saved === "favicon_deleted"
+            ? "Favicon удалён."
+            : null;
 
   return (
     <div className="grid gap-6 max-w-xl">
+      {successMessage ? (
+        <Alert>
+          <AlertTitle>Готово</AlertTitle>
+          <AlertDescription>{successMessage}</AlertDescription>
+        </Alert>
+      ) : null}
+
       <div>
         <h1 className="jn-headline text-2xl font-semibold uppercase tracking-wide">Настройки</h1>
         <p className="mt-1 text-sm text-muted-foreground">Настройки внешнего вида и метаданных сайта.</p>
@@ -40,12 +63,7 @@ export default async function AdminSettingsPage() {
             className="rounded-md border bg-background px-3 py-2 text-sm"
           />
           <div>
-            <button
-              type="submit"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-            >
-              Сохранить
-            </button>
+            <FormSubmitButton idleLabel="Сохранить" />
           </div>
         </form>
       </div>
@@ -64,12 +82,7 @@ export default async function AdminSettingsPage() {
             className="rounded-md border bg-background px-3 py-2 text-sm resize-none"
           />
           <div>
-            <button
-              type="submit"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-            >
-              Сохранить
-            </button>
+            <FormSubmitButton idleLabel="Сохранить" />
           </div>
         </form>
       </div>
@@ -85,9 +98,12 @@ export default async function AdminSettingsPage() {
             </div>
             <span className="text-sm text-muted-foreground truncate max-w-[240px]">{faviconUrl}</span>
             <form action={deleteFaviconAction}>
-              <button type="submit" className="text-sm text-destructive hover:underline">
-                Удалить
-              </button>
+              <FormSubmitButton
+                idleLabel="Удалить"
+                pendingLabel="Удаляю..."
+                variant="link"
+                className="h-auto p-0 text-destructive"
+              />
             </form>
           </div>
         ) : (
@@ -107,12 +123,7 @@ export default async function AdminSettingsPage() {
               required
               className="text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground"
             />
-            <button
-              type="submit"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-            >
-              Сохранить
-            </button>
+            <FormSubmitButton idleLabel="Сохранить" />
           </div>
         </form>
       </div>
