@@ -197,34 +197,10 @@ export function RadioPlayerButton({
   );
 }
 
-export function RadioStatusBadge({ className }: { className?: string }) {
-  const { isPlaying, isPending, hasError } = useRadioPlayer();
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em]",
-        isPlaying
-          ? "border-primary/30 bg-primary/10 text-primary"
-          : hasError
-            ? "border-destructive/30 bg-destructive/10 text-destructive"
-            : "border-border bg-background text-muted-foreground",
-        className,
-      )}
-    >
-      <span
-        className={cn(
-          "h-1.5 w-1.5 rounded-full",
-          isPlaying ? "bg-primary animate-pulse" : hasError ? "bg-destructive" : "bg-muted-foreground/70",
-        )}
-      />
-      {isPending ? "BUFFER" : isPlaying ? "ON AIR" : "OFF AIR"}
-    </span>
-  );
-}
-
 export function RadioVolumeControl({ className }: { className?: string }) {
-  const { volume, setVolume } = useRadioPlayer();
+  const { isPlaying, isPending, volume, setVolume } = useRadioPlayer();
+
+  if (!isPlaying && !isPending) return null;
 
   return (
     <label className={cn("inline-flex items-center gap-2 text-muted-foreground", className)}>
@@ -246,12 +222,9 @@ export function RadioVolumeControl({ className }: { className?: string }) {
 export function MobileRadioPlayerPanel() {
   return (
     <div className="rounded-md border bg-muted/30 p-3">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="jn-headline text-sm font-semibold uppercase tracking-wide">Ռադիո</div>
-          <div className="mt-1 text-xs text-muted-foreground">Ուղիղ հեռարձակում Jour News-ի համար</div>
-        </div>
-        <RadioStatusBadge />
+      <div>
+        <div className="jn-headline text-sm font-semibold uppercase tracking-wide">Ռադիո</div>
+        <div className="mt-1 text-xs text-muted-foreground">Ուղիղ հեռարձակում Jour News-ի համար</div>
       </div>
 
       <div className="mt-3 flex items-center gap-3">

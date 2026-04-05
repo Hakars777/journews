@@ -9,7 +9,6 @@ import { MobileMenu } from "@/components/site/mobile-menu";
 import { BreakingTicker } from "@/components/site/breaking-ticker";
 import {
   RadioPlayerButton,
-  RadioStatusBadge,
   RadioVolumeControl,
 } from "@/components/site/radio-player-button";
 
@@ -47,7 +46,6 @@ export async function SiteHeader() {
           <div className="flex items-center gap-3 ml-auto">
             <div className="flex items-center gap-2">
               <RadioPlayerButton />
-              <RadioStatusBadge className="hidden sm:inline-flex" />
               <RadioVolumeControl className="hidden md:inline-flex" />
             </div>
             <a
