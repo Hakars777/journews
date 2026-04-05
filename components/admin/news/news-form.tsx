@@ -320,97 +320,126 @@ export function NewsForm({
               Медиа
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-4">
-            {coverImage ? (
-              <div className="grid gap-2">
-                <div className="text-sm font-medium">Выбранная обложка</div>
-                <div className="relative aspect-[16/9] max-w-xl overflow-hidden rounded-md border bg-muted">
-                  <Image src={coverImage} alt="" fill className="object-cover" />
-                </div>
-                <div>
-                  <Button type="button" variant="outline" onClick={() => setCoverImage("")}>
-                    Убрать обложку
-                  </Button>
-                </div>
+          <CardContent className="grid gap-5">
+            <div className="grid gap-4 rounded-xl border p-4">
+              <div className="grid gap-1">
+                <div className="text-sm font-semibold">Обложка</div>
+                <p className="text-xs text-muted-foreground">
+                  Можно либо загрузить новую обложку с компьютера, либо выбрать уже загруженную картинку из галереи R2.
+                </p>
               </div>
-            ) : null}
 
-            <div className="grid gap-2">
-              <Label htmlFor="coverFile">Загрузить обложку</Label>
-              <Input
-                id="coverFile"
-                name="coverFile"
-                type="file"
-                accept="image/*"
-                className="max-w-xl"
-              />
-              <p className="text-xs text-muted-foreground">
-                jpg/png/webp/gif, до 10MB. Если выбрать новый файл, он заменит текущую обложку.
-              </p>
-            </div>
-
-            <div className="grid gap-2">
-              <div className="text-sm font-medium">Галерея R2</div>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="grid min-w-[280px] flex-1 gap-2">
+                  <Label htmlFor="coverFile">Загрузить с компьютера</Label>
+                  <Input
+                    id="coverFile"
+                    name="coverFile"
+                    type="file"
+                    accept="image/*"
+                    className="max-w-xl"
+                  />
+                </div>
                 <MediaGalleryPicker
                   title="Выбор обложки из галереи"
-                  buttonLabel="Обложка из галереи"
-                  selectedButtonLabel="Заменить обложку"
+                  buttonLabel="Выбрать из галереи"
+                  selectedButtonLabel="Заменить из галереи"
                   items={mediaItems}
                   selectedUrls={coverImage ? [coverImage] : []}
                   onChange={(next) => setCoverImage(next[0] ?? "")}
                 />
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Форматы: jpg/png/webp/gif, до 10MB. Новый файл или выбранная картинка из галереи заменят текущую обложку.
+              </p>
+
+              {coverImage ? (
+                <div className="grid gap-2">
+                  <div className="text-sm font-medium">Текущая обложка</div>
+                  <div className="relative aspect-[16/9] max-w-xl overflow-hidden rounded-md border bg-muted">
+                    <Image src={coverImage} alt="" fill className="object-cover" />
+                  </div>
+                  <div>
+                    <Button type="button" variant="outline" onClick={() => setCoverImage("")}>
+                      Убрать обложку
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed px-4 py-6 text-sm text-muted-foreground">
+                  Обложка пока не выбрана.
+                </div>
+              )}
+            </div>
+
+            <div className="grid gap-4 rounded-xl border p-4">
+              <div className="grid gap-1">
+                <div className="text-sm font-semibold">Галерея</div>
+                <p className="text-xs text-muted-foreground">
+                  Для галереи можно добавлять новые файлы с компьютера и одновременно выбирать уже загруженные изображения из галереи R2.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="grid min-w-[280px] flex-1 gap-2">
+                  <Label htmlFor="galleryFiles">Добавить с компьютера</Label>
+                  <Input
+                    id="galleryFiles"
+                    name="galleryFiles"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="max-w-xl"
+                  />
+                </div>
                 <MediaGalleryPicker
                   title="Выбор изображений для галереи"
                   description="Можно выбрать несколько уже загруженных изображений. Повторно загружать их не нужно."
-                  buttonLabel="Фото для галереи"
-                  selectedButtonLabel="Фото для галереи"
+                  buttonLabel="Выбрать из галереи"
+                  selectedButtonLabel={`Выбрано: ${galleryImages.length}`}
                   items={mediaItems}
                   multiple
                   selectedUrls={galleryImages}
                   onChange={(next) => setGalleryImages(uniqueStrings(next))}
                 />
               </div>
-            </div>
 
-            {galleryImages.length ? (
-              <div className="grid gap-2">
-                <div className="text-sm font-medium">Выбранные изображения галереи</div>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {galleryImages.map((src) => (
-                    <div key={src} className="grid gap-2">
-                      <div className="relative aspect-[4/3] overflow-hidden rounded-md border bg-muted">
-                        <Image src={src} alt="" fill className="object-cover" />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setGalleryImages((current) => current.filter((item) => item !== src))
-                        }
-                      >
-                        Убрать
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
-            <div className="grid gap-2">
-              <Label htmlFor="galleryFiles">Добавить изображения в галерею</Label>
-              <Input
-                id="galleryFiles"
-                name="galleryFiles"
-                type="file"
-                accept="image/*"
-                multiple
-                className="max-w-xl"
-              />
               <p className="text-xs text-muted-foreground">
                 Новые файлы будут добавлены к уже выбранным изображениям из галереи.
               </p>
+
+              {galleryImages.length ? (
+                <div className="grid gap-2">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <span>Изображения галереи</span>
+                    <Badge variant="secondary">{galleryImages.length}</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {galleryImages.map((src) => (
+                      <div key={src} className="grid gap-2">
+                        <div className="relative aspect-[4/3] overflow-hidden rounded-md border bg-muted">
+                          <Image src={src} alt="" fill className="object-cover" />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setGalleryImages((current) => current.filter((item) => item !== src))
+                          }
+                        >
+                          Убрать
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed px-4 py-6 text-sm text-muted-foreground">
+                  В галерею пока ничего не добавлено.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
