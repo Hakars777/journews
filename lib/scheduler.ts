@@ -21,16 +21,20 @@ export async function runSchedulerIfNeeded() {
 
   const ts = new Date();
   // Lightweight scheduled publish: no per-record work, no cron.
-  await prisma.news.updateMany({
-    where: {
-      status: "SCHEDULED",
-      scheduledAt: { not: null, lte: ts },
-    },
-    data: {
-      status: "PUBLISHED",
-      publishedAt: ts,
-      scheduledAt: null,
-    },
-  });
+  try {
+    await prisma.news.updateMany({
+      where: {
+        status: "SCHEDULED",
+        scheduledAt: { not: null, lte: ts },
+      },
+      data: {
+        status: "PUBLISHED",
+        publishedAt: ts,
+        scheduledAt: null,
+      },
+    });
+  } catch {
+    // Admin and public pages must still render even if the scheduler tick fails.
+  }
 }
 

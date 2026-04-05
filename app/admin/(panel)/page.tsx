@@ -10,7 +10,7 @@ export default async function AdminDashboardPage() {
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const [newsTotal, publishedTotal, views7d, recent] = await Promise.all([
+  const dashboardData = await Promise.all([
     prisma.news.count(),
     prisma.news.count({ where: { status: "PUBLISHED" } }),
     prisma.newsView.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
@@ -27,7 +27,9 @@ export default async function AdminDashboardPage() {
         scheduledAt: true,
       },
     }),
-  ]);
+  ]).catch(() => [0, 0, 0, []] as const);
+
+  const [newsTotal, publishedTotal, views7d, recent] = dashboardData;
 
   return (
     <div className="grid gap-6">
