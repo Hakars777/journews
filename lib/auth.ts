@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import type { UserRole } from "@prisma/client";
 import type { User } from "next-auth";
 import type { NextAuthOptions } from "next-auth";
@@ -14,7 +13,6 @@ const credentialsSchema = z.object({
 });
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     // Credentials-only auth requires JWT sessions in NextAuth v4.

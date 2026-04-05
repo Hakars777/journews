@@ -1,16 +1,25 @@
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/admin/login-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getServerAuthSession } from "@/lib/auth";
 import { EDIT_ROLES, isRoleAllowed } from "@/lib/roles";
-import { getSiteSettings } from "@/lib/site";
+import { getSiteSettings, SITE_NAME } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminLoginPage() {
   const [session, settings] = await Promise.all([
-    getServerAuthSession(),
-    getSiteSettings(),
+    (async () => {
+      try {
+        const { getServerAuthSession } = await import("@/lib/auth");
+        return await getServerAuthSession();
+      } catch {
+        return null;
+      }
+    })(),
+    getSiteSettings().catch(() => ({
+      name: SITE_NAME,
+      description: "",
+    })),
   ]);
   if (session?.user && isRoleAllowed(session.user.role, EDIT_ROLES)) {
     redirect("/admin");
