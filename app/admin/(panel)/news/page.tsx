@@ -4,6 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaginationLinks } from "@/components/site/pagination";
 import { NewsTableWithBulkActions } from "@/components/admin/news/news-bulk-actions";
+import { getAdminNewsFilterOptions } from "@/lib/admin-cache";
 import { prisma } from "@/lib/prisma";
 import { getPagination, pageCount, parsePage } from "@/lib/pagination";
 import { isPostgres } from "@/lib/db";
@@ -54,7 +55,7 @@ export default async function AdminNewsListPage({
             ? { views: "asc" }
             : { createdAt: "desc" };
 
-  const [total, items, categories, authors] = await Promise.all([
+  const [total, items, { categories, authors }] = await Promise.all([
     prisma.news.count({ where }),
     prisma.news.findMany({
       where,
@@ -76,8 +77,7 @@ export default async function AdminNewsListPage({
         author: { select: { name: true } },
       },
     }),
-    prisma.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    prisma.author.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    getAdminNewsFilterOptions(),
   ]);
 
   const totalPages = pageCount(total, PAGE_SIZE);

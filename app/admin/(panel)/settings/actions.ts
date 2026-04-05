@@ -9,6 +9,7 @@ import { assertAdmin } from "@/lib/guard-actions";
 
 function revalidateSettingsPages() {
   revalidateTag("site-settings");
+  revalidateTag("admin-media");
   revalidatePath("/", "layout");
   revalidatePath("/admin", "layout");
   revalidatePath("/admin/settings");

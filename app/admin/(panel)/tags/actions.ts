@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { assertEditor } from "@/lib/guard-actions";
@@ -49,6 +50,7 @@ export async function createTagAction(
 
   const slug = await uniqueSlug(parsed.data.slug);
   await prisma.tag.create({ data: { name: parsed.data.name, slug } });
+  revalidateTag("admin-news-options");
   redirect("/admin/tags");
 }
 
@@ -68,6 +70,7 @@ export async function updateTagAction(
 
   const slug = await uniqueSlug(parsed.data.slug, existing.id);
   await prisma.tag.update({ where: { id: existing.id }, data: { name: parsed.data.name, slug } });
+  revalidateTag("admin-news-options");
   redirect(`/admin/tags/${existing.id}/edit`);
 }
 
@@ -78,6 +81,7 @@ export async function deleteTagAction(id: string) {
   } catch {
     redirect("/admin/tags?error=in_use");
   }
+  revalidateTag("admin-news-options");
   redirect("/admin/tags");
 }
 

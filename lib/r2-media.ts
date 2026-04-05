@@ -1,6 +1,7 @@
 import "server-only";
 
 import path from "node:path";
+import { unstable_cache } from "next/cache";
 import { ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
 import { getConfiguredStorageProvider } from "@/lib/uploads";
 
@@ -241,5 +242,16 @@ export async function getAdminMediaOverview(
 
 export async function getAdminMediaPickerItems(limit: number | null = null): Promise<MediaPreviewItem[]> {
   const overview = await getAdminMediaOverview({ previewLimit: limit });
+  return overview.status === "ready" ? overview.items : [];
+}
+
+export const getCachedAdminMediaOverview = unstable_cache(
+  async () => getAdminMediaOverview({ previewLimit: null }),
+  ["admin-media-overview"],
+  { revalidate: 120, tags: ["admin-media"] },
+);
+
+export async function getCachedAdminMediaPickerItems() {
+  const overview = await getCachedAdminMediaOverview();
   return overview.status === "ready" ? overview.items : [];
 }

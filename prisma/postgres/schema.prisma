@@ -145,9 +145,11 @@ model News {
 
   @@index([publishedAt])
   @@index([categoryId])
+  @@index([authorId])
   @@index([views])
   @@index([status])
   @@index([status, publishedAt])
+  @@index([createdAt])
   @@index([isTop])
   @@index([isEditorsPick])
 }

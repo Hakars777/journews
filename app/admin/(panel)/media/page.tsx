@@ -2,10 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PaginationLinks } from "@/components/site/pagination";
+import { getAdminMediaPageData } from "@/lib/admin-cache";
 import { formatBytes, formatDateTime } from "@/lib/format";
-import { getAdminMediaOverview, getFreeTierBytes } from "@/lib/r2-media";
+import { getFreeTierBytes } from "@/lib/r2-media";
+import { getPagination, pageCount, parsePage } from "@/lib/pagination";
 
 export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 24;
 
 function UsageBar({ percent }: { percent: number }) {
   const clamped = Math.max(0, Math.min(100, percent));
@@ -22,8 +27,14 @@ function UsageBar({ percent }: { percent: number }) {
   );
 }
 
-export default async function AdminMediaPage() {
-  const overview = await getAdminMediaOverview();
+export default async function AdminMediaPage({
+  searchParams,
+}: {
+  searchParams?: { page?: string };
+}) {
+  const page = parsePage(searchParams?.page);
+  const { skip, take } = getPagination(page, PAGE_SIZE);
+  const overview = await getAdminMediaPageData();
   const freeTierLabel = formatBytes(getFreeTierBytes());
 
   if (overview.status === "disabled") {
@@ -71,6 +82,9 @@ export default async function AdminMediaPage() {
       </div>
     );
   }
+
+  const totalPages = pageCount(overview.items.length, PAGE_SIZE);
+  const galleryItems = overview.items.slice(skip, skip + take);
 
   return (
     <div className="grid gap-6">
@@ -184,16 +198,16 @@ export default async function AdminMediaPage() {
       <Card>
         <CardHeader>
           <CardTitle className="jn-headline text-base font-semibold uppercase tracking-wide">
-            Recent gallery
+            Gallery
           </CardTitle>
           <CardDescription>
-            Latest {overview.items.length} images from R2. Open any item to inspect the original file.
+            Изображения из R2 с постраничным выводом. Всего: {overview.items.length}.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {overview.items.length ? (
+          {galleryItems.length ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-              {overview.items.map((item) => (
+              {galleryItems.map((item) => (
                 <Link
                   key={item.key}
                   href={item.url}
@@ -227,6 +241,13 @@ export default async function AdminMediaPage() {
               The bucket is connected, but there are no images to show yet.
             </div>
           )}
+          <div className="mt-6">
+            <PaginationLinks
+              page={page}
+              totalPages={totalPages}
+              buildHref={(nextPage) => (nextPage > 1 ? `/admin/media?page=${nextPage}` : "/admin/media")}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

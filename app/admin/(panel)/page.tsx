@@ -1,33 +1,14 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { prisma } from "@/lib/prisma";
+import { getAdminDashboardData } from "@/lib/admin-cache";
 import { formatDateTime } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
+  const { newsTotal, publishedTotal, views7d, recent } = await getAdminDashboardData();
   const now = new Date();
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-  const [newsTotal, publishedTotal, views7d, recent] = await Promise.all([
-    prisma.news.count().catch(() => 0),
-    prisma.news.count({ where: { status: "PUBLISHED" } }).catch(() => 0),
-    prisma.newsView.count({ where: { createdAt: { gte: sevenDaysAgo } } }).catch(() => 0),
-    prisma.news.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 10,
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        status: true,
-        createdAt: true,
-        publishedAt: true,
-        scheduledAt: true,
-      },
-    }).catch(() => []),
-  ]);
 
   return (
     <div className="grid gap-6">

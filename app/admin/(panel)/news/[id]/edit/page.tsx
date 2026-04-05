@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NewsForm } from "@/components/admin/news/news-form";
 import { ConfirmActionForm } from "@/components/admin/confirm-action-form";
+import { getAdminNewsOptions } from "@/lib/admin-cache";
 import { prisma } from "@/lib/prisma";
 import { deleteNewsAction, updateNewsAction } from "@/app/admin/(panel)/news/actions";
 
@@ -38,11 +39,7 @@ export default async function AdminNewsEditPage({
   });
   if (!news) notFound();
 
-  const [categories, authors, tags] = await Promise.all([
-    prisma.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    prisma.author.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    prisma.tag.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
-  ]);
+  const { categories, authors, tags } = await getAdminNewsOptions();
 
   const galleryImages = Array.isArray(news.galleryImages)
     ? news.galleryImages.filter((x): x is string => typeof x === "string")

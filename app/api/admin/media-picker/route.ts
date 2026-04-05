@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerAuthSession } from "@/lib/auth";
-import { getAdminMediaPickerItems } from "@/lib/r2-media";
+import { getCachedAdminMediaPickerItems } from "@/lib/r2-media";
 import { EDIT_ROLES, isRoleAllowed } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ export async function GET() {
   }
 
   try {
-    const items = await getAdminMediaPickerItems();
+    const items = await getCachedAdminMediaPickerItems();
     return NextResponse.json({ items });
   } catch {
     return NextResponse.json(

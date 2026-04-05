@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { assertEditor } from "@/lib/guard-actions";
@@ -76,6 +77,8 @@ export async function createAuthorAction(
       avatar,
     },
   });
+  revalidateTag("admin-news-options");
+  revalidateTag("admin-media");
   redirect("/admin/authors");
 }
 
@@ -120,6 +123,8 @@ export async function updateAuthorAction(
 
   await cleanupUnusedMediaUrls([existing.avatar && existing.avatar !== avatar ? existing.avatar : null]);
 
+  revalidateTag("admin-news-options");
+  revalidateTag("admin-media");
   redirect(`/admin/authors/${existing.id}/edit`);
 }
 
@@ -138,5 +143,7 @@ export async function deleteAuthorAction(id: string) {
     redirect("/admin/authors?error=in_use");
   }
 
+  revalidateTag("admin-news-options");
+  revalidateTag("admin-media");
   redirect("/admin/authors");
 }

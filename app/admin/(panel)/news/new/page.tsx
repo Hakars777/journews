@@ -1,15 +1,11 @@
 import { NewsForm } from "@/components/admin/news/news-form";
-import { prisma } from "@/lib/prisma";
+import { getAdminNewsOptions } from "@/lib/admin-cache";
 import { createNewsAction } from "@/app/admin/(panel)/news/actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminNewsNewPage() {
-  const [categories, authors, tags] = await Promise.all([
-    prisma.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    prisma.author.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    prisma.tag.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
-  ]);
+  const { categories, authors, tags } = await getAdminNewsOptions();
 
   if (!categories.length || !authors.length) {
     return (

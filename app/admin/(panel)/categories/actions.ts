@@ -47,6 +47,7 @@ function revalidateCategoryPages() {
   revalidateTag("categories");
   revalidateTag("home-page");
   revalidateTag("site-sidebar");
+  revalidateTag("admin-news-options");
   revalidatePath("/", "layout");
   revalidatePath("/", "page");
   revalidatePath("/page/[page]", "page");

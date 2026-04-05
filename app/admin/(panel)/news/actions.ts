@@ -102,6 +102,11 @@ function normalizeSourceUrl(url?: string) {
   }
 }
 
+function revalidateAdminNewsData() {
+  revalidateTag("admin-dashboard");
+  revalidateTag("admin-media");
+}
+
 export async function createNewsAction(
   _prev: NewsActionState,
   formData: FormData,
@@ -175,6 +180,7 @@ export async function createNewsAction(
 
   revalidateTag("home-page");
   revalidateTag("site-sidebar");
+  revalidateAdminNewsData();
   redirect("/admin/news?created=1");
 }
 
@@ -278,6 +284,7 @@ export async function updateNewsAction(
   revalidateTag("home-page");
   revalidateTag("news-page");
   revalidateTag("site-sidebar");
+  revalidateAdminNewsData();
   redirect(`/admin/news/${existing.id}/edit?saved=1`);
 }
 
@@ -300,6 +307,7 @@ export async function deleteNewsAction(newsId: string) {
   revalidateTag("home-page");
   revalidateTag("news-page");
   revalidateTag("site-sidebar");
+  revalidateAdminNewsData();
   redirect("/admin/news");
 }
 
@@ -324,6 +332,7 @@ export async function bulkDeleteNewsAction(ids: string[]): Promise<{ ok: boolean
   revalidateTag("home-page");
   revalidateTag("news-page");
   revalidateTag("site-sidebar");
+  revalidateAdminNewsData();
   return { ok: true };
 }
 
@@ -340,6 +349,7 @@ export async function bulkPublishNewsAction(ids: string[]): Promise<{ ok: boolea
   revalidateTag("home-page");
   revalidateTag("news-page");
   revalidateTag("site-sidebar");
+  revalidateTag("admin-dashboard");
   return { ok: true };
 }
 
@@ -355,5 +365,6 @@ export async function bulkArchiveNewsAction(ids: string[]): Promise<{ ok: boolea
   revalidateTag("home-page");
   revalidateTag("news-page");
   revalidateTag("site-sidebar");
+  revalidateTag("admin-dashboard");
   return { ok: true };
 }
