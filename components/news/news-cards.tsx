@@ -57,7 +57,7 @@ export function NewsCardBig({ item }: { item: NewsCardItem }) {
           <Cover
             src={item.coverImage}
             alt={item.title}
-            className="aspect-[16/9] sm:aspect-[21/9]"
+            className="aspect-[4/3] lg:aspect-[5/4]"
             priority
             sizes="(max-width: 1024px) 100vw, 65vw"
           />
