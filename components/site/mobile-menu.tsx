@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X, Search } from "lucide-react";
+import { MobileRadioPlayerPanel } from "@/components/site/radio-player-button";
 
 type Category = { id: string; name: string; slug: string };
 
@@ -56,6 +57,7 @@ export function MobileMenu({ categories }: { categories: Category[] }) {
             </nav>
 
             <div className="px-4 py-4 border-t space-y-3">
+              <MobileRadioPlayerPanel />
               <Link
                 href="/search"
                 onClick={() => setOpen(false)}

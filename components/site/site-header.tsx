@@ -7,7 +7,11 @@ import { getSiteSettings } from "@/lib/site";
 import { LogoLink } from "@/components/site/logo-link";
 import { MobileMenu } from "@/components/site/mobile-menu";
 import { BreakingTicker } from "@/components/site/breaking-ticker";
-import { RadioPlayerButton } from "@/components/site/radio-player-button";
+import {
+  RadioPlayerButton,
+  RadioStatusBadge,
+  RadioVolumeControl,
+} from "@/components/site/radio-player-button";
 
 const getHeaderCategories = unstable_cache(
   async () =>
@@ -40,8 +44,12 @@ export async function SiteHeader() {
       <div className="border-b bg-muted/50">
         <div className="container flex h-8 items-center justify-between text-xs text-muted-foreground">
           <span className="capitalize hidden sm:block">{dateStr}</span>
-          <div className="flex items-center gap-4 ml-auto">
-            <RadioPlayerButton />
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="flex items-center gap-2">
+              <RadioPlayerButton />
+              <RadioStatusBadge className="hidden sm:inline-flex" />
+              <RadioVolumeControl className="hidden md:inline-flex" />
+            </div>
             <a
               href="/rss.xml"
               className="flex items-center gap-1 hover:text-foreground transition-colors"
