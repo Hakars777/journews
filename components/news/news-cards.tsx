@@ -100,7 +100,7 @@ export function NewsCardRow({ item }: { item: NewsCardItem }) {
       <Link href={`/news/${item.slug}`} className="absolute inset-0 z-0" aria-label={item.title} />
       <div className="grid gap-4 sm:grid-cols-[220px,1fr]">
         <Link href={`/news/${item.slug}`} className="relative z-10 block">
-          <Cover src={item.coverImage} alt={item.title} className="aspect-[16/10]" sizes="(max-width: 640px) 100vw, 220px" />
+          <Cover src={item.coverImage} alt={item.title} className="aspect-[4/3]" sizes="(max-width: 640px) 100vw, 220px" />
         </Link>
 
         <div className="grid gap-2">
@@ -147,7 +147,7 @@ export function NewsCardMedium({ item }: { item: NewsCardItem }) {
         <Cover
           src={item.coverImage}
           alt={item.title}
-          className="w-28 h-[76px] sm:w-32 sm:h-[84px]"
+          className="w-28 h-[84px] sm:w-32 sm:h-24"
           sizes="128px"
         />
       </Link>
@@ -179,7 +179,7 @@ export function NewsCardGrid({ item }: { item: NewsCardItem }) {
         <Cover
           src={item.coverImage}
           alt={item.title}
-          className="aspect-[16/9]"
+          className="aspect-[4/3]"
           sizes="(max-width: 640px) 100vw, 33vw"
         />
         <div className="grid gap-1">

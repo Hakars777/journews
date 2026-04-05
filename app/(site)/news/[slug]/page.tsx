@@ -219,7 +219,7 @@ export default async function NewsPage({ params }: { params: { slug: string } })
           </header>
 
           {news.coverImage ? (
-            <div className="mt-5 relative aspect-[16/9] overflow-hidden rounded-md bg-muted">
+            <div className="mt-5 relative aspect-[4/3] lg:aspect-[3/2] overflow-hidden rounded-md bg-muted">
               <Image
                 src={news.coverImage}
                 alt={news.title}
