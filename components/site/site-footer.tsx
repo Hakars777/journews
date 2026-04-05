@@ -11,7 +11,7 @@ const getFooterCategories = unstable_cache(
       select: { id: true, name: true, slug: true },
     }),
   ["footer-categories"],
-  { revalidate: 300 },
+  { revalidate: 300, tags: ["categories"] },
 );
 
 export async function SiteFooter() {

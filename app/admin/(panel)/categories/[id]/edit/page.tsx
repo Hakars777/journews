@@ -5,7 +5,13 @@ import { updateCategoryAction } from "@/app/admin/(panel)/categories/actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminCategoryEditPage({ params }: { params: { id: string } }) {
+export default async function AdminCategoryEditPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams?: { saved?: string };
+}) {
   const category = await prisma.category.findUnique({
     where: { id: params.id },
     select: { id: true, name: true, slug: true, description: true },
@@ -24,6 +30,7 @@ export default async function AdminCategoryEditPage({ params }: { params: { id: 
         slug: category.slug,
         description: category.description,
       }}
+      successMessage={searchParams?.saved ? "Категория сохранена." : undefined}
     />
   );
 }

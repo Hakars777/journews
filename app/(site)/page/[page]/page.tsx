@@ -63,7 +63,7 @@ const getHomePageData = unstable_cache(
     };
   },
   ["home-page-feed"],
-  { revalidate: 300 },
+  { revalidate: 300, tags: ["home-page", "categories"] },
 );
 
 export default async function HomePageN({

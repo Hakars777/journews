@@ -16,7 +16,7 @@ const getHeaderCategories = unstable_cache(
       select: { id: true, name: true, slug: true },
     }),
   ["site-header-categories-v2"],
-  { revalidate: 300 },
+  { revalidate: 300, tags: ["categories"] },
 );
 
 export async function SiteHeader() {

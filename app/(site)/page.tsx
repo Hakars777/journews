@@ -105,7 +105,7 @@ const getHomePageData = unstable_cache(
     return { top, feed, totalPages: pageCount(total, PAGE_SIZE), categorySections };
   },
   ["home-page"],
-  { revalidate: 300 },
+  { revalidate: 300, tags: ["home-page", "categories"] },
 );
 
 export default async function HomePage() {

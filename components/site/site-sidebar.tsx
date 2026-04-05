@@ -53,7 +53,7 @@ const getSidebarData = unstable_cache(
     return { popularOrdered, latest, editorsPick, categories };
   },
   ["site-sidebar"],
-  { revalidate: 300 },
+  { revalidate: 300, tags: ["site-sidebar", "categories"] },
 );
 
 export async function SiteSidebar() {

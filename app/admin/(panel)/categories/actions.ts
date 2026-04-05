@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { assertEditor } from "@/lib/guard-actions";
@@ -42,6 +43,17 @@ async function uniqueSlug(slug: string, excludeId?: string) {
   throw new Error("Не удалось подобрать уникальный slug.");
 }
 
+function revalidateCategoryPages() {
+  revalidateTag("categories");
+  revalidateTag("home-page");
+  revalidateTag("site-sidebar");
+  revalidatePath("/", "layout");
+  revalidatePath("/", "page");
+  revalidatePath("/page/[page]", "page");
+  revalidatePath("/category/[slug]", "page");
+  revalidatePath("/category/[slug]/[page]", "page");
+}
+
 export async function createCategoryAction(
   _prev: CategoryActionState,
   formData: FormData,
@@ -62,7 +74,8 @@ export async function createCategoryAction(
     },
   });
 
-  redirect("/admin/categories");
+  revalidateCategoryPages();
+  redirect("/admin/categories?created=1");
 }
 
 export async function updateCategoryAction(
@@ -71,7 +84,10 @@ export async function updateCategoryAction(
   formData: FormData,
 ): Promise<CategoryActionState> {
   await assertEditor();
-  const existing = await prisma.category.findUnique({ where: { id }, select: { id: true } });
+  const existing = await prisma.category.findUnique({
+    where: { id },
+    select: { id: true, slug: true },
+  });
   if (!existing) return { ok: false, message: "Категория не найдена." };
 
   const parsed = schema.safeParse(parse(formData));
@@ -90,7 +106,8 @@ export async function updateCategoryAction(
     },
   });
 
-  redirect(`/admin/categories/${existing.id}/edit`);
+  revalidateCategoryPages();
+  redirect(`/admin/categories/${existing.id}/edit?saved=${Date.now()}`);
 }
 
 export async function deleteCategoryAction(id: string) {
@@ -101,6 +118,7 @@ export async function deleteCategoryAction(id: string) {
     // If category is used by news, Prisma will throw.
     redirect("/admin/categories?error=in_use");
   }
+  revalidateCategoryPages();
   redirect("/admin/categories");
 }
 

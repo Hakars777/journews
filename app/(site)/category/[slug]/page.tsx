@@ -27,7 +27,7 @@ const getCategoryMeta = unstable_cache(
       select: { id: true, name: true, description: true, slug: true },
     }),
   ["category-meta"],
-  { revalidate: 300 },
+  { revalidate: 300, tags: ["categories"] },
 );
 
 const getCategoryPageData = unstable_cache(
@@ -69,7 +69,7 @@ const getCategoryPageData = unstable_cache(
     };
   },
   ["category-page"],
-  { revalidate: 300 },
+  { revalidate: 300, tags: ["categories"] },
 );
 
 export async function generateMetadata({

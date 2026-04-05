@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useFormState } from "react-dom";
+import { useFormState, useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { slugify } from "@/lib/slug";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -15,19 +15,36 @@ type FormState = { ok: boolean; message?: string; fieldErrors?: Record<string, s
 
 const initialFormState: FormState = { ok: true };
 
+function SubmitButton({ label }: { label: string }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? "Сохраняю..." : label}
+    </Button>
+  );
+}
+
 export function CategoryForm({
   title,
   submitLabel,
   action,
   initial,
+  successMessage,
 }: {
   title: string;
   submitLabel: string;
   action: (prevState: FormState, formData: FormData) => Promise<FormState>;
   initial?: { name: string; slug: string; description: string | null };
+  successMessage?: string;
 }) {
   const [rawState, formAction] = useFormState(action, initialFormState);
   const state = rawState ?? initialFormState;
+
+  useEffect(() => {
+    if (successMessage) toast.success(successMessage);
+  }, [successMessage]);
+
   useEffect(() => {
     if (state.ok === false) toast.error(state.message ?? "Ошибка");
   }, [state]);
@@ -103,7 +120,7 @@ export function CategoryForm({
         </Card>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit">{submitLabel}</Button>
+          <SubmitButton label={submitLabel} />
           <Button type="button" variant="outline" onClick={() => history.back()}>
             Назад
           </Button>
