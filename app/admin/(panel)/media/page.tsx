@@ -18,7 +18,7 @@ function UsageBar({ percent }: { percent: number }) {
     clamped >= 90 ? "bg-destructive" : clamped >= 70 ? "bg-amber-500" : "bg-emerald-500";
 
   return (
-    <div className="h-3 overflow-hidden rounded-full bg-muted">
+    <div className="h-2 overflow-hidden rounded-full bg-muted">
       <div
         className={`h-full rounded-full transition-all ${tone}`}
         style={{ width: `${Math.max(clamped, clamped > 0 ? 4 : 0)}%` }}
@@ -103,52 +103,8 @@ export default async function AdminMediaPage({
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Used now</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-semibold">{formatBytes(overview.totalBytes)}</div>
-            <div className="mt-1 text-xs text-muted-foreground">Current size of the R2 bucket</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Free left</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-semibold">{formatBytes(overview.remainingFreeBytes)}</div>
-            <div className="mt-1 text-xs text-muted-foreground">Remaining before {freeTierLabel}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Images</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-semibold">{overview.imageCount}</div>
-            <div className="mt-1 text-xs text-muted-foreground">Previewable items in the bucket</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Last upload</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-semibold">
-              {overview.lastUploadAt ? formatDateTime(overview.lastUploadAt) : "No uploads yet"}
-            </div>
-            <div className="mt-1 text-xs text-muted-foreground">Latest object visible in R2</div>
-          </CardContent>
-        </Card>
-      </div>
-
       <Card className="overflow-hidden">
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle className="jn-headline text-base font-semibold uppercase tracking-wide">
             Usage overview
           </CardTitle>
@@ -159,36 +115,63 @@ export default async function AdminMediaPage({
             </Link>
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-6">
-          <div className="rounded-2xl border bg-muted/30 p-5">
+        <CardContent className="grid gap-4">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-xl border bg-muted/20 px-4 py-3">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Used now</div>
+              <div className="mt-1 text-2xl font-semibold">{formatBytes(overview.totalBytes)}</div>
+            </div>
+            <div className="rounded-xl border bg-muted/20 px-4 py-3">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Free left</div>
+              <div className="mt-1 text-2xl font-semibold">
+                {formatBytes(overview.remainingFreeBytes)}
+              </div>
+            </div>
+            <div className="rounded-xl border bg-muted/20 px-4 py-3">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Images</div>
+              <div className="mt-1 text-2xl font-semibold">{overview.imageCount}</div>
+            </div>
+            <div className="rounded-xl border bg-muted/20 px-4 py-3">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Last upload</div>
+              <div className="mt-1 text-base font-semibold">
+                {overview.lastUploadAt ? formatDateTime(overview.lastUploadAt) : "No uploads yet"}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border bg-muted/30 px-4 py-3">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="text-sm font-medium">
+              <div className="text-sm">
+                <span className="font-medium">
                   {formatBytes(overview.totalBytes)} used out of {freeTierLabel}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Free tier is based on stored size. This is the current bucket size, not just uploads made this month.
-                </div>
+                </span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  • {overview.objectCount} files in bucket
+                </span>
               </div>
               <div className="text-sm font-medium">{overview.usagePercent.toFixed(1)}%</div>
             </div>
-            <div className="mt-4">
+            <div className="mt-3">
               <UsageBar percent={overview.usagePercent} />
             </div>
           </div>
 
           {overview.folders.length ? (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <div className="flex flex-wrap gap-2">
               {overview.folders.map((folder) => (
-                <div key={folder.name} className="rounded-xl border bg-background p-4">
-                  <div className="text-sm font-medium">{folder.name}</div>
-                  <div className="mt-1 text-2xl font-semibold">{formatBytes(folder.bytes)}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">{folder.files} files</div>
+                <div
+                  key={folder.name}
+                  className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1.5 text-sm"
+                >
+                  <span className="font-medium">{folder.name}</span>
+                  <span className="text-muted-foreground">{formatBytes(folder.bytes)}</span>
+                  <span className="text-xs text-muted-foreground">{folder.files} files</span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+            <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
               Folders will appear here after the first upload reaches R2.
             </div>
           )}
