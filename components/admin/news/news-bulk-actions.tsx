@@ -15,6 +15,7 @@ type NewsItem = {
   status: string;
   isTop: boolean;
   isEditorsPick: boolean;
+  isTicker: boolean;
   views: number;
   createdAt: Date;
   publishedAt: Date | null;
@@ -161,6 +162,7 @@ export function NewsTableWithBulkActions({ items }: { items: NewsItem[] }) {
                   </Link>
                   {n.isTop ? <Badge variant="secondary">top</Badge> : null}
                   {n.isEditorsPick ? <Badge variant="outline">pick</Badge> : null}
+                  {n.isTicker ? <Badge variant="default">ticker</Badge> : null}
                 </div>
                 <div className="text-xs text-muted-foreground">/news/{n.slug}</div>
               </TableCell>

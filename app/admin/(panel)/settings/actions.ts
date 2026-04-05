@@ -6,7 +6,7 @@ import { cleanupUnusedMediaUrls } from "@/lib/media-cleanup";
 import { prisma } from "@/lib/prisma";
 import { normalizeSelectedMediaUrl, saveImageUpload } from "@/lib/uploads";
 import { assertAdmin } from "@/lib/guard-actions";
-import { MOBILE_ARTICLE_TITLE_SCALE } from "@/lib/site";
+import { MOBILE_ARTICLE_TITLE_SCALE, TICKER_LABEL, TICKER_SPEED_SECONDS } from "@/lib/site";
 
 function revalidateSettingsPages() {
   revalidateTag("site-settings");
@@ -59,6 +59,32 @@ export async function saveMobileArticleTitleScaleAction(formData: FormData): Pro
 
   revalidateSettingsPages();
   redirect(`/admin/settings?saved=mobile_title_scale&t=${Date.now()}`);
+}
+
+export async function saveBreakingTickerSettingsAction(formData: FormData): Promise<void> {
+  await assertAdmin();
+
+  const label = ((formData.get("ticker_label") as string | null) ?? "").trim() || TICKER_LABEL;
+  const rawSpeed = Number((formData.get("ticker_speed_seconds") as string | null) ?? "");
+  const speed = Number.isFinite(rawSpeed)
+    ? Math.max(20, Math.min(120, Math.round(rawSpeed)))
+    : TICKER_SPEED_SECONDS;
+
+  await prisma.$transaction([
+    prisma.siteSetting.upsert({
+      where: { key: "ticker_label" },
+      update: { value: label },
+      create: { key: "ticker_label", value: label },
+    }),
+    prisma.siteSetting.upsert({
+      where: { key: "ticker_speed_seconds" },
+      update: { value: String(speed) },
+      create: { key: "ticker_speed_seconds", value: String(speed) },
+    }),
+  ]);
+
+  revalidateSettingsPages();
+  redirect(`/admin/settings?saved=ticker&t=${Date.now()}`);
 }
 
 export async function saveFaviconAction(formData: FormData): Promise<void> {

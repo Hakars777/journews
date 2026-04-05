@@ -34,6 +34,7 @@ export default async function AdminNewsNewPage() {
         tagIds: [],
         isTop: false,
         isEditorsPick: false,
+        isTicker: false,
         sourceName: null,
         sourceUrl: null,
         coverImage: null,

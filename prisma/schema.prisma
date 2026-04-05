@@ -123,6 +123,7 @@ model News {
   status        NewsStatus @default(DRAFT)
   isTop         Boolean    @default(false)
   isEditorsPick Boolean    @default(false)
+  isTicker      Boolean    @default(false)
 
   views Int @default(0)
 
@@ -148,6 +149,7 @@ model News {
   @@index([views])
   @@index([status])
   @@index([status, publishedAt])
+  @@index([isTicker, publishedAt])
   @@index([createdAt])
   @@index([isTop])
   @@index([isEditorsPick])

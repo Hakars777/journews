@@ -63,6 +63,7 @@ export function NewsForm({
     tagIds: string[];
     isTop: boolean;
     isEditorsPick: boolean;
+    isTicker: boolean;
     sourceName: string | null;
     sourceUrl: string | null;
     coverImage: string | null;
@@ -307,7 +308,18 @@ export function NewsForm({
                 />
                 <span>Выбор редакции</span>
               </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="isTicker"
+                  defaultChecked={initial?.isTicker ?? false}
+                />
+                <span>Бегущая строка</span>
+              </label>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Если отметить новость, она попадёт в бегущую строку. Если не отмечена ни одна новость, строка на сайте будет скрыта.
+            </p>
           </CardContent>
         </Card>
 

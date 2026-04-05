@@ -1,21 +1,21 @@
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { getSiteSettings } from "@/lib/site";
 
 const getTickerNews = unstable_cache(
   async () =>
     prisma.news.findMany({
-      where: { status: "PUBLISHED", publishedAt: { not: null } },
+      where: { status: "PUBLISHED", publishedAt: { not: null }, isTicker: true },
       orderBy: { publishedAt: "desc" },
-      take: 8,
       select: { id: true, slug: true, title: true },
     }),
   ["ticker-news"],
-  { revalidate: 60 },
+  { revalidate: 60, tags: ["ticker-news"] },
 );
 
 export async function BreakingTicker() {
-  const items = await getTickerNews();
+  const [items, settings] = await Promise.all([getTickerNews(), getSiteSettings()]);
   if (!items.length) return null;
 
   // Duplicate items for seamless infinite loop
@@ -26,11 +26,14 @@ export async function BreakingTicker() {
       <div className="flex items-stretch">
         <div className="shrink-0 bg-primary-foreground/15 px-4 py-2 flex items-center border-r border-primary-foreground/20">
           <span className="text-xs font-bold uppercase tracking-widest whitespace-nowrap">
-            Срочно
+            {settings.tickerLabel}
           </span>
         </div>
         <div className="overflow-hidden flex-1 py-2">
-          <div className="animate-ticker inline-flex gap-12 whitespace-nowrap text-sm">
+          <div
+            className="animate-ticker inline-flex gap-12 whitespace-nowrap text-sm"
+            style={{ animationDuration: `${settings.tickerSpeedSeconds}s` }}
+          >
             {doubled.map((n, i) => (
               <Link
                 key={`${n.id}-${i}`}

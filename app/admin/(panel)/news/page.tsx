@@ -69,6 +69,7 @@ export default async function AdminNewsListPage({
         status: true,
         isTop: true,
         isEditorsPick: true,
+        isTicker: true,
         views: true,
         createdAt: true,
         publishedAt: true,

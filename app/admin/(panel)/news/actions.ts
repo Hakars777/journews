@@ -31,6 +31,7 @@ const baseSchema = z.object({
   sourceUrl: z.string().optional(),
   isTop: z.boolean().optional(),
   isEditorsPick: z.boolean().optional(),
+  isTicker: z.boolean().optional(),
   tagIds: z.array(z.string()).default([]),
   selectedCoverUrl: z.string().optional(),
   selectedGalleryUrls: z.array(z.string()).default([]),
@@ -84,6 +85,7 @@ function parseForm(formData: FormData) {
     sourceUrl: String(formData.get("sourceUrl") ?? "").trim() || undefined,
     isTop: formData.get("isTop") === "on",
     isEditorsPick: formData.get("isEditorsPick") === "on",
+    isTicker: formData.get("isTicker") === "on",
     tagIds,
     selectedCoverUrl: String(formData.get("selectedCoverUrl") ?? "").trim() || undefined,
     selectedGalleryUrls,
@@ -105,6 +107,7 @@ function normalizeSourceUrl(url?: string) {
 function revalidateAdminNewsData() {
   revalidateTag("admin-dashboard");
   revalidateTag("admin-media");
+  revalidateTag("ticker-news");
 }
 
 export async function createNewsAction(
@@ -170,6 +173,7 @@ export async function createNewsAction(
       authorId: data.authorId,
       isTop: !!data.isTop,
       isEditorsPick: !!data.isEditorsPick,
+      isTicker: !!data.isTicker,
       publishedAt,
       scheduledAt,
       tags: {
@@ -265,6 +269,7 @@ export async function updateNewsAction(
         authorId: data.authorId,
         isTop: !!data.isTop,
         isEditorsPick: !!data.isEditorsPick,
+        isTicker: !!data.isTicker,
         publishedAt,
         scheduledAt,
       },
@@ -350,6 +355,7 @@ export async function bulkPublishNewsAction(ids: string[]): Promise<{ ok: boolea
   revalidateTag("news-page");
   revalidateTag("site-sidebar");
   revalidateTag("admin-dashboard");
+  revalidateTag("ticker-news");
   return { ok: true };
 }
 
@@ -366,5 +372,6 @@ export async function bulkArchiveNewsAction(ids: string[]): Promise<{ ok: boolea
   revalidateTag("news-page");
   revalidateTag("site-sidebar");
   revalidateTag("admin-dashboard");
+  revalidateTag("ticker-news");
   return { ok: true };
 }
