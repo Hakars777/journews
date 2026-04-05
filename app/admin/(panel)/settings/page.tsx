@@ -2,7 +2,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FormSubmitButton } from "@/components/admin/form-submit-button";
 import { FaviconForm } from "@/components/admin/settings/favicon-form";
 import { prisma } from "@/lib/prisma";
-import { getAdminMediaPickerItems } from "@/lib/r2-media";
 import { SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
 import {
   saveFaviconAction,
@@ -18,12 +17,9 @@ export default async function AdminSettingsPage({
 }: {
   searchParams?: { saved?: string };
 }) {
-  const [rows, mediaItems] = await Promise.all([
-    prisma.siteSetting
-      .findMany({ where: { key: { in: ["favicon", "site_name", "site_description"] } } })
-      .catch(() => []),
-    getAdminMediaPickerItems(),
-  ]);
+  const rows = await prisma.siteSetting
+    .findMany({ where: { key: { in: ["favicon", "site_name", "site_description"] } } })
+    .catch(() => []);
   const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
 
   const faviconUrl = map["favicon"] ?? null;
@@ -93,7 +89,6 @@ export default async function AdminSettingsPage({
 
       <FaviconForm
         initialFaviconUrl={faviconUrl}
-        mediaItems={mediaItems}
         saveAction={saveFaviconAction}
         deleteAction={deleteFaviconAction}
       />

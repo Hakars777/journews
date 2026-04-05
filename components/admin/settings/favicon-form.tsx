@@ -5,16 +5,12 @@ import { useState } from "react";
 import { FormSubmitButton } from "@/components/admin/form-submit-button";
 import { MediaGalleryPicker } from "@/components/admin/media/media-gallery-picker";
 
-type MediaItem = { key: string; url: string; folder: string };
-
 export function FaviconForm({
   initialFaviconUrl,
-  mediaItems,
   saveAction,
   deleteAction,
 }: {
   initialFaviconUrl: string | null;
-  mediaItems: MediaItem[];
   saveAction: (formData: FormData) => Promise<void>;
   deleteAction: () => Promise<void>;
 }) {
@@ -74,7 +70,6 @@ export function FaviconForm({
             description="Можно взять уже загруженное изображение из R2 вместо повторной загрузки."
             buttonLabel="Favicon из галереи"
             selectedButtonLabel="Заменить favicon"
-            items={mediaItems}
             selectedUrls={faviconUrl ? [faviconUrl] : []}
             onChange={(next) => setFaviconUrl(next[0] ?? "")}
           />

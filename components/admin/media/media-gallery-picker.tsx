@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -86,6 +86,7 @@ export function MediaGalleryPicker({
   buttonLabel = "Выбрать из галереи",
   selectedButtonLabel,
   items,
+  loadUrl,
   multiple = false,
   selectedUrls,
   onChange,
@@ -95,7 +96,8 @@ export function MediaGalleryPicker({
   emptyMessage?: string;
   buttonLabel?: string;
   selectedButtonLabel?: string;
-  items: MediaGalleryItem[];
+  items?: MediaGalleryItem[];
+  loadUrl?: string;
   multiple?: boolean;
   selectedUrls: string[];
   onChange: (next: string[]) => void;
@@ -103,13 +105,64 @@ export function MediaGalleryPicker({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("newest");
+  const [itemsState, setItemsState] = useState<MediaGalleryItem[]>(items ?? []);
+  const [loadingState, setLoadingState] = useState<"idle" | "loading" | "ready" | "error">(
+    items?.length ? "ready" : "idle",
+  );
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    setItemsState(items ?? []);
+    setLoadingState(items?.length ? "ready" : "idle");
+    setErrorMessage("");
+  }, [items]);
+
+  useEffect(() => {
+    if (!open || loadingState !== "idle") return;
+
+    let cancelled = false;
+
+    async function loadItems() {
+      setLoadingState("loading");
+      setErrorMessage("");
+
+      try {
+        const response = await fetch(loadUrl ?? "/api/admin/media-picker", {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        const data = (await response.json().catch(() => null)) as
+          | { items?: MediaGalleryItem[]; message?: string }
+          | null;
+
+        if (!response.ok) {
+          throw new Error(data?.message || "Не удалось загрузить галерею.");
+        }
+
+        if (cancelled) return;
+        setItemsState(Array.isArray(data?.items) ? data.items : []);
+        setLoadingState("ready");
+      } catch (error) {
+        if (cancelled) return;
+        setItemsState([]);
+        setLoadingState("error");
+        setErrorMessage(error instanceof Error ? error.message : "Не удалось загрузить галерею.");
+      }
+    }
+
+    void loadItems();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loadUrl, loadingState, open]);
 
   const selectedSet = useMemo(() => new Set(selectedUrls), [selectedUrls]);
   const filteredItems = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     const baseItems = !normalized
-      ? items
-      : items.filter((item) => {
+      ? itemsState
+      : itemsState.filter((item) => {
           return (
             item.folder.toLowerCase().includes(normalized) ||
             item.key.toLowerCase().includes(normalized) ||
@@ -118,7 +171,7 @@ export function MediaGalleryPicker({
         });
 
     return [...baseItems].sort((left, right) => compareItems(left, right, sortMode));
-  }, [items, query, sortMode]);
+  }, [itemsState, query, sortMode]);
 
   const triggerLabel = multiple
     ? selectedUrls.length
@@ -192,7 +245,7 @@ export function MediaGalleryPicker({
             {multiple && selectedUrls.length ? (
               <div className="flex flex-wrap gap-2">
                 {selectedUrls.map((url) => {
-                  const item = items.find((entry) => entry.url === url);
+                  const item = itemsState.find((entry) => entry.url === url);
                   return (
                     <button
                       key={url}
@@ -209,7 +262,20 @@ export function MediaGalleryPicker({
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-            {filteredItems.length ? (
+            {loadingState === "loading" ? (
+              <div className="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground">
+                Загружаю изображения из галереи...
+              </div>
+            ) : loadingState === "error" ? (
+              <div className="grid gap-4 rounded-xl border border-dashed p-10 text-center">
+                <div className="text-sm text-muted-foreground">{errorMessage}</div>
+                <div>
+                  <Button type="button" variant="outline" onClick={() => setLoadingState("idle")}>
+                    Повторить
+                  </Button>
+                </div>
+              </div>
+            ) : filteredItems.length ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                 {filteredItems.map((item) => {
                   const selected = selectedSet.has(item.url);

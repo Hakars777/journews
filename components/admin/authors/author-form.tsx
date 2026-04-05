@@ -15,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 type FormState = { ok: boolean; message?: string; fieldErrors?: Record<string, string[]> };
-type MediaItem = { key: string; url: string; folder: string };
 
 const initialFormState: FormState = { ok: true };
 
@@ -24,13 +23,11 @@ export function AuthorForm({
   submitLabel,
   action,
   initial,
-  mediaItems,
 }: {
   title: string;
   submitLabel: string;
   action: (prevState: FormState, formData: FormData) => Promise<FormState>;
   initial?: { name: string; slug: string; bio: string | null; avatar: string | null };
-  mediaItems: MediaItem[];
 }) {
   const [rawState, formAction] = useFormState(action, initialFormState);
   const state = rawState ?? initialFormState;
@@ -137,7 +134,6 @@ export function AuthorForm({
                 title="Выбор аватара из галереи"
                 buttonLabel="Аватар из галереи"
                 selectedButtonLabel="Заменить аватар"
-                items={mediaItems}
                 selectedUrls={avatar ? [avatar] : []}
                 onChange={(next) => setAvatar(next[0] ?? "")}
               />

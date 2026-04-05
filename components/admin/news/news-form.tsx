@@ -26,7 +26,6 @@ type FormState = {
 const initialFormState: FormState = { ok: true };
 
 type SelectItem = { id: string; name: string; slug?: string };
-type MediaItem = { key: string; url: string; folder: string };
 
 function uniqueStrings(items: string[]) {
   return [...new Set(items.filter(Boolean))];
@@ -48,7 +47,6 @@ export function NewsForm({
   categories,
   authors,
   tags,
-  mediaItems,
 }: {
   title: string;
   submitLabel: string;
@@ -75,7 +73,6 @@ export function NewsForm({
   categories: SelectItem[];
   authors: SelectItem[];
   tags: SelectItem[];
-  mediaItems: MediaItem[];
 }) {
   const [rawState, formAction] = useFormState(action, initialFormState);
   const state = rawState ?? initialFormState;
@@ -344,7 +341,6 @@ export function NewsForm({
                   title="Выбор обложки из галереи"
                   buttonLabel="Выбрать из галереи"
                   selectedButtonLabel="Заменить из галереи"
-                  items={mediaItems}
                   selectedUrls={coverImage ? [coverImage] : []}
                   onChange={(next) => setCoverImage(next[0] ?? "")}
                 />
@@ -398,7 +394,6 @@ export function NewsForm({
                   description="Можно выбрать несколько уже загруженных изображений. Повторно загружать их не нужно."
                   buttonLabel="Выбрать из галереи"
                   selectedButtonLabel={`Выбрано: ${galleryImages.length}`}
-                  items={mediaItems}
                   multiple
                   selectedUrls={galleryImages}
                   onChange={(next) => setGalleryImages(uniqueStrings(next))}
