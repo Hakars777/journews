@@ -375,3 +375,26 @@ export async function bulkArchiveNewsAction(ids: string[]): Promise<{ ok: boolea
   revalidateTag("ticker-news");
   return { ok: true };
 }
+
+export async function toggleNewsTickerQuickAction(
+  newsId: string,
+  nextValue: boolean,
+): Promise<{ ok: boolean; isTicker?: boolean; message?: string }> {
+  await assertEditor();
+
+  try {
+    const updated = await prisma.news.update({
+      where: { id: newsId },
+      data: { isTicker: nextValue },
+      select: { isTicker: true },
+    });
+
+    revalidateTag("home-page");
+    revalidateTag("news-page");
+    revalidateTag("site-sidebar");
+    revalidateAdminNewsData();
+    return { ok: true, isTicker: updated.isTicker };
+  } catch {
+    return { ok: false, message: "Не удалось обновить бегущую строку." };
+  }
+}

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { NewsTickerQuickToggle } from "@/components/admin/news/news-ticker-quick-toggle";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/format";
 import { bulkDeleteNewsAction, bulkPublishNewsAction, bulkArchiveNewsAction } from "@/app/admin/(panel)/news/actions";
@@ -140,6 +141,7 @@ export function NewsTableWithBulkActions({ items }: { items: NewsItem[] }) {
             <TableHead>Статус</TableHead>
             <TableHead>Категория</TableHead>
             <TableHead>Автор</TableHead>
+            <TableHead className="text-center">Ticker</TableHead>
             <TableHead>Даты</TableHead>
             <TableHead className="text-right">Views</TableHead>
           </TableRow>
@@ -162,13 +164,15 @@ export function NewsTableWithBulkActions({ items }: { items: NewsItem[] }) {
                   </Link>
                   {n.isTop ? <Badge variant="secondary">top</Badge> : null}
                   {n.isEditorsPick ? <Badge variant="outline">pick</Badge> : null}
-                  {n.isTicker ? <Badge variant="default">ticker</Badge> : null}
                 </div>
                 <div className="text-xs text-muted-foreground">/news/{n.slug}</div>
               </TableCell>
               <TableCell>{n.status.toLowerCase()}</TableCell>
               <TableCell className="text-sm text-muted-foreground">{n.category.name}</TableCell>
               <TableCell className="text-sm text-muted-foreground">{n.author.name}</TableCell>
+              <TableCell className="text-center">
+                <NewsTickerQuickToggle newsId={n.id} initialEnabled={n.isTicker} />
+              </TableCell>
               <TableCell className="text-xs text-muted-foreground">
                 <div>создано: {formatDateTime(n.createdAt)}</div>
                 <div>
@@ -184,7 +188,7 @@ export function NewsTableWithBulkActions({ items }: { items: NewsItem[] }) {
           ))}
           {!items.length ? (
             <TableRow>
-              <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
+              <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
                 Ничего не найдено.
               </TableCell>
             </TableRow>
