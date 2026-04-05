@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, Rss } from "lucide-react";
+import { Radio, Search, Rss } from "lucide-react";
 import { unstable_cache } from "next/cache";
 import { Input } from "@/components/ui/input";
 import { prisma } from "@/lib/prisma";
@@ -18,6 +18,8 @@ const getHeaderCategories = unstable_cache(
   ["site-header-categories-v2"],
   { revalidate: 300, tags: ["categories"] },
 );
+
+const RADIO_STREAM_URL = "https://stream.zeno.fm/dvodr8cuwc5uv";
 
 export async function SiteHeader() {
   const [categories, settings] = await Promise.all([
@@ -40,6 +42,16 @@ export async function SiteHeader() {
         <div className="container flex h-8 items-center justify-between text-xs text-muted-foreground">
           <span className="capitalize hidden sm:block">{dateStr}</span>
           <div className="flex items-center gap-4 ml-auto">
+            <a
+              href={RADIO_STREAM_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+              aria-label="Լսել ռադիոն"
+            >
+              <Radio className="h-3 w-3" />
+              <span>Ռադիո</span>
+            </a>
             <a
               href="/rss.xml"
               className="flex items-center gap-1 hover:text-foreground transition-colors"
