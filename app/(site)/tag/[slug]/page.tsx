@@ -8,6 +8,7 @@ import { SiteSidebar } from "@/components/site/site-sidebar";
 import { NewsCardRow } from "@/components/news/news-cards";
 import { prisma } from "@/lib/prisma";
 import { getPagination, pageCount } from "@/lib/pagination";
+import { buildCanonicalUrl } from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -71,8 +72,13 @@ export async function generateMetadata({
   params: { slug: string };
 }): Promise<Metadata> {
   const tag = await getTagMeta(params.slug);
-  if (!tag) return { title: "Тег не найден" };
-  return { title: `Тег: ${tag.name}` };
+  if (!tag) return { title: "Պիտակը չի գտնվել" };
+  return {
+    title: `Պիտակ: ${tag.name}`,
+    alternates: {
+      canonical: buildCanonicalUrl(`/tag/${tag.slug}`),
+    },
+  };
 }
 
 export default async function TagPage({

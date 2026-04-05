@@ -46,6 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: settings.name,
       title: settings.name,
       description: settings.description,
+      locale: "hy_AM",
     },
     twitter: {
       card: "summary_large_image",
@@ -61,7 +62,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" suppressHydrationWarning>
+    <html lang="hy" suppressHydrationWarning>
       <body className={cn(fontSans.variable, fontSerif.variable, "antialiased")}>
         <Providers>
           {children}

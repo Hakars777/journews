@@ -10,7 +10,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Статические страницы
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: base, lastModified: new Date(), changeFrequency: "hourly", priority: 1 },
-    { url: `${base}/search`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
   ];
 
   // Категории
@@ -22,6 +21,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: c.updatedAt,
     changeFrequency: "daily",
     priority: 0.7,
+  }));
+
+  const authors = await prisma.author.findMany({
+    select: { slug: true, updatedAt: true },
+  });
+  const authorRoutes: MetadataRoute.Sitemap = authors.map((author) => ({
+    url: `${base}/author/${author.slug}`,
+    lastModified: author.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.6,
+  }));
+
+  const tags = await prisma.tag.findMany({
+    select: { slug: true, updatedAt: true },
+  });
+  const tagRoutes: MetadataRoute.Sitemap = tags.map((tag) => ({
+    url: `${base}/tag/${tag.slug}`,
+    lastModified: tag.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.5,
   }));
 
   // Все опубликованные статьи
@@ -37,5 +56,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...newsRoutes];
+  return [...staticRoutes, ...categoryRoutes, ...authorRoutes, ...tagRoutes, ...newsRoutes];
 }

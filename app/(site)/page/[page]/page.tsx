@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { Separator } from "@/components/ui/separator";
 import { NewsCardBig, NewsCardRow, NewsCardSmall } from "@/components/news/news-cards";
@@ -8,6 +9,7 @@ import { PaginationLinks } from "@/components/site/pagination";
 import { SiteSidebar } from "@/components/site/site-sidebar";
 import { prisma } from "@/lib/prisma";
 import { getPagination, pageCount, parsePage } from "@/lib/pagination";
+import { buildCanonicalUrl } from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -65,6 +67,20 @@ const getHomePageData = unstable_cache(
   ["home-page-feed"],
   { revalidate: 300, tags: ["home-page", "categories"] },
 );
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { page: string };
+}): Promise<Metadata> {
+  const page = parsePage(params.page);
+  return {
+    title: `Լրահոս | Էջ ${page}`,
+    alternates: {
+      canonical: buildCanonicalUrl(page <= 1 ? "/" : `/page/${page}`),
+    },
+  };
+}
 
 export default async function HomePageN({
   params,

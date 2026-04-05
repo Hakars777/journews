@@ -2,7 +2,7 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 export const SITE_NAME = "Jour News";
-export const SITE_DESCRIPTION = "Jour News — новостной сайт.";
+export const SITE_DESCRIPTION = "Jour News — հայկական լրատվական կայք։";
 export const MOBILE_ARTICLE_TITLE_SCALE = 90;
 export const TICKER_LABEL = "Срочно";
 export const TICKER_SPEED_SECONDS = 60;

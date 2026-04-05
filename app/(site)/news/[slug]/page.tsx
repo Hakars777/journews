@@ -16,6 +16,7 @@ import { getBaseUrl, getSiteSettings } from "@/lib/site";
 import { Suspense } from "react";
 import { SiteSidebar } from "@/components/site/site-sidebar";
 import { toAbsoluteMediaUrl } from "@/lib/uploads";
+import { buildBreadcrumbJsonLd, buildCanonicalUrl, toJsonLd } from "@/lib/seo";
 
 // Cache individual articles for 5 min. ViewTracker is a client component
 // and still fires on every visit regardless of ISR.
@@ -84,6 +85,7 @@ async function fetchNewsPageData(slug: string) {
       views: true,
       sourceName: true,
       sourceUrl: true,
+      updatedAt: true,
       category: { select: { name: true, slug: true } },
       author: { select: { name: true, slug: true } },
       tags: { select: { tag: { select: { id: true, name: true, slug: true } } } },
@@ -131,12 +133,16 @@ export async function generateMetadata({
   return {
     title: news.title,
     description: news.lead,
+    alternates: {
+      canonical: buildCanonicalUrl(`/news/${news.slug}`),
+    },
     openGraph: {
       type: "article",
       url,
       title: news.title,
       description: news.lead,
       siteName: settings.name,
+      locale: "hy_AM",
       publishedTime,
       images: image ? [{ url: image }] : undefined,
     },
@@ -151,7 +157,10 @@ export async function generateMetadata({
 
 export default async function NewsPage({ params }: { params: { slug: string } }) {
   const slug = decodeURIComponent(params.slug);
-  const data = await getNewsPageData(slug).catch(() => null);
+  const [data, settings] = await Promise.all([
+    getNewsPageData(slug).catch(() => null),
+    getSiteSettings().catch(() => null),
+  ]);
   if (!data) notFound();
 
   const { news, similar } = data;
@@ -160,9 +169,50 @@ export default async function NewsPage({ params }: { params: { slug: string } })
   const gallery = Array.isArray(news.galleryImages)
     ? news.galleryImages.filter((x): x is string => typeof x === "string" && x.length > 0)
     : [];
+  const image = toAbsoluteMediaUrl(news.coverImage, getBaseUrl());
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Գլխավոր", path: "/" },
+    ...(news.category ? [{ name: news.category.name, path: `/category/${news.category.slug}` }] : []),
+    { name: news.title, path: `/news/${news.slug}` },
+  ]);
+  const newsArticleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: news.title,
+    description: news.lead,
+    inLanguage: "hy",
+    mainEntityOfPage: pageUrl,
+    datePublished: toIsoDateTime(news.publishedAt),
+    dateModified: toIsoDateTime(news.updatedAt),
+    image: image ? [image] : undefined,
+    articleSection: news.category?.name,
+    keywords: tags.length ? tags.map((tag) => tag.name).join(", ") : undefined,
+    author: {
+      "@type": "Person",
+      name: news.author.name,
+      url: buildCanonicalUrl(`/author/${news.author.slug}`),
+    },
+    publisher: {
+      "@type": "Organization",
+      name: settings?.name ?? "Jour News",
+      url: buildCanonicalUrl("/"),
+      logo: {
+        "@type": "ImageObject",
+        url: buildCanonicalUrl("/api/favicon"),
+      },
+    },
+  };
 
   return (
     <div className="container py-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLd(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLd(newsArticleJsonLd) }}
+      />
       <ViewTracker newsId={news.id} />
 
       <div className="grid gap-8 lg:grid-cols-[1fr,340px]">

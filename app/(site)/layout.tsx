@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { buildOrganizationJsonLd, buildWebsiteJsonLd, toJsonLd } from "@/lib/seo";
 import { runSchedulerIfNeeded } from "@/lib/scheduler";
 import { getSiteSettings } from "@/lib/site";
 
@@ -28,6 +29,16 @@ export default async function SiteLayout({
         } as CSSProperties
       }
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLd(buildOrganizationJsonLd(settings.name)) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: toJsonLd(buildWebsiteJsonLd(settings.name, settings.description)),
+        }}
+      />
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />

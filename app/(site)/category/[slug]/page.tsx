@@ -8,6 +8,7 @@ import { SiteSidebar } from "@/components/site/site-sidebar";
 import { NewsCardRow } from "@/components/news/news-cards";
 import { prisma } from "@/lib/prisma";
 import { getPagination, pageCount } from "@/lib/pagination";
+import { buildCanonicalUrl } from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -78,10 +79,13 @@ export async function generateMetadata({
   params: { slug: string };
 }): Promise<Metadata> {
   const category = await getCategoryMeta(params.slug);
-  if (!category) return { title: "Категория не найдена" };
+  if (!category) return { title: "Բաժինը չի գտնվել" };
   return {
     title: category.name,
     description: category.description ?? undefined,
+    alternates: {
+      canonical: buildCanonicalUrl(`/category/${category.slug}`),
+    },
   };
 }
 

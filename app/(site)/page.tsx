@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { Separator } from "@/components/ui/separator";
 import { NewsCardBig, NewsCardMedium, NewsCardGrid, NewsCardRow } from "@/components/news/news-cards";
@@ -7,6 +8,8 @@ import { PaginationLinks } from "@/components/site/pagination";
 import { SiteSidebar } from "@/components/site/site-sidebar";
 import { prisma } from "@/lib/prisma";
 import { getPagination, pageCount } from "@/lib/pagination";
+import { buildCanonicalUrl } from "@/lib/seo";
+import { getSiteSettings } from "@/lib/site";
 
 type NewsItem = {
   id: string;
@@ -107,6 +110,20 @@ const getHomePageData = unstable_cache(
   ["home-page"],
   { revalidate: 300, tags: ["home-page", "categories"] },
 );
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings().catch(() => null);
+
+  return {
+    title: {
+      absolute: settings?.name ?? "Jour News",
+    },
+    description: settings?.description,
+    alternates: {
+      canonical: buildCanonicalUrl("/"),
+    },
+  };
+}
 
 export default async function HomePage() {
   const { top, feed, totalPages, categorySections } = await getHomePageData(1) as {

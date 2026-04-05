@@ -9,6 +9,7 @@ import { SiteSidebar } from "@/components/site/site-sidebar";
 import { NewsCardRow } from "@/components/news/news-cards";
 import { prisma } from "@/lib/prisma";
 import { getPagination, pageCount, parsePage } from "@/lib/pagination";
+import { buildCanonicalUrl } from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -86,10 +87,13 @@ export async function generateMetadata({
   params: { slug: string; page: string };
 }): Promise<Metadata> {
   const author = await getAuthorMeta(params.slug);
-  if (!author) return { title: "Автор не найден" };
+  if (!author) return { title: "Հեղինակը չի գտնվել" };
   return {
-    title: `${author.name} — страница ${params.page}`,
+    title: `${author.name} | Էջ ${params.page}`,
     description: author.bio ?? undefined,
+    alternates: {
+      canonical: buildCanonicalUrl(`/author/${author.slug}/${params.page}`),
+    },
   };
 }
 

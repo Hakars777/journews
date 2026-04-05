@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { isPostgres } from "@/lib/db";
 import { getPagination, pageCount, parsePage } from "@/lib/pagination";
 import { buildNewsSearchWhere, searchNewsByFts } from "@/lib/search";
+import { buildCanonicalUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +21,16 @@ export function generateMetadata({
   searchParams: Record<string, string | string[] | undefined>;
 }): Metadata {
   const q = typeof searchParams.q === "string" ? searchParams.q.trim() : "";
-  if (!q) return { title: "Поиск" };
-  return { title: `Поиск: ${q}` };
+  return {
+    title: q ? `Որոնում: ${q}` : "Որոնում",
+    robots: {
+      index: false,
+      follow: true,
+    },
+    alternates: {
+      canonical: buildCanonicalUrl("/search"),
+    },
+  };
 }
 
 function getString(v: unknown) {
