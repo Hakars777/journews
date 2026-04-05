@@ -24,54 +24,59 @@ async function getAnalyticsData() {
     topArticles,
     categoryStats,
   ] = await Promise.all([
-    prisma.news.count({ where: { status: "PUBLISHED" } }),
-    prisma.news.count({ where: { status: "DRAFT" } }),
-    prisma.news.count({ where: { status: "SCHEDULED" } }),
-    prisma.author.count(),
-    prisma.category.count(),
-    prisma.newsView.count(),
+    prisma.news.count({ where: { status: "PUBLISHED" } }).catch(() => 0),
+    prisma.news.count({ where: { status: "DRAFT" } }).catch(() => 0),
+    prisma.news.count({ where: { status: "SCHEDULED" } }).catch(() => 0),
+    prisma.author.count().catch(() => 0),
+    prisma.category.count().catch(() => 0),
+    prisma.newsView.count().catch(() => 0),
     prisma.news.findMany({
       where: { status: "PUBLISHED" },
       orderBy: { views: "desc" },
       take: 10,
       select: { id: true, title: true, views: true, slug: true },
-    }),
+    }).catch(() => []),
     prisma.category.findMany({
       select: { name: true, _count: { select: { news: { where: { status: "PUBLISHED" } } } } },
       orderBy: { name: "asc" },
-    }),
+    }).catch(() => []),
   ]);
 
   let viewsPerDay: DayCount[] = [];
   let publishedPerDay: DayCount[] = [];
 
   if (isPostgres()) {
-    const [viewRows, pubRows] = await Promise.all([
-      prisma.$queryRaw<{ date: Date; count: bigint }[]>`
-        SELECT DATE("createdAt") as date, COUNT(*) as count
-        FROM "NewsView"
-        WHERE "createdAt" >= CURRENT_DATE - INTERVAL '29 days'
-        GROUP BY DATE("createdAt")
-        ORDER BY date
-      `,
-      prisma.$queryRaw<{ date: Date; count: bigint }[]>`
-        SELECT DATE("publishedAt") as date, COUNT(*) as count
-        FROM "News"
-        WHERE status = 'PUBLISHED'
-          AND "publishedAt" IS NOT NULL
-          AND "publishedAt" >= CURRENT_DATE - INTERVAL '29 days'
-        GROUP BY DATE("publishedAt")
-        ORDER BY date
-      `,
-    ]);
-    viewsPerDay = viewRows.map((r) => ({
-      date: r.date.toISOString().slice(0, 10),
-      count: Number(r.count),
-    }));
-    publishedPerDay = pubRows.map((r) => ({
-      date: r.date.toISOString().slice(0, 10),
-      count: Number(r.count),
-    }));
+    try {
+      const [viewRows, pubRows] = await Promise.all([
+        prisma.$queryRaw<{ date: Date; count: bigint }[]>`
+          SELECT DATE("createdAt") as date, COUNT(*) as count
+          FROM "NewsView"
+          WHERE "createdAt" >= CURRENT_DATE - INTERVAL '29 days'
+          GROUP BY DATE("createdAt")
+          ORDER BY date
+        `,
+        prisma.$queryRaw<{ date: Date; count: bigint }[]>`
+          SELECT DATE("publishedAt") as date, COUNT(*) as count
+          FROM "News"
+          WHERE status = 'PUBLISHED'
+            AND "publishedAt" IS NOT NULL
+            AND "publishedAt" >= CURRENT_DATE - INTERVAL '29 days'
+          GROUP BY DATE("publishedAt")
+          ORDER BY date
+        `,
+      ]);
+      viewsPerDay = viewRows.map((r) => ({
+        date: r.date.toISOString().slice(0, 10),
+        count: Number(r.count),
+      }));
+      publishedPerDay = pubRows.map((r) => ({
+        date: r.date.toISOString().slice(0, 10),
+        count: Number(r.count),
+      }));
+    } catch {
+      viewsPerDay = [];
+      publishedPerDay = [];
+    }
   }
 
   // Fill missing days with 0
