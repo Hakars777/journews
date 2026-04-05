@@ -3,8 +3,9 @@
 import { z } from "zod";
 import { revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { cleanupUnusedMediaUrls } from "@/lib/media-cleanup";
 import { assertEditor } from "@/lib/guard-actions";
-import { deleteUploadedImage, saveImageUpload } from "@/lib/uploads";
+import { normalizeSelectedMediaUrl, saveImageUpload } from "@/lib/uploads";
 import { slugify } from "@/lib/slug";
 import { redirect } from "next/navigation";
 
@@ -31,8 +32,8 @@ const baseSchema = z.object({
   isTop: z.boolean().optional(),
   isEditorsPick: z.boolean().optional(),
   tagIds: z.array(z.string()).default([]),
-  removeCover: z.boolean().optional(),
-  removeGallery: z.array(z.string()).default([]),
+  selectedCoverUrl: z.string().optional(),
+  selectedGalleryUrls: z.array(z.string()).default([]),
 });
 
 function toDateOrNull(input?: string) {
@@ -62,8 +63,8 @@ async function uniqueSlugOrThrow(slug: string, excludeId?: string) {
 
 function parseForm(formData: FormData) {
   const tagIds = formData.getAll("tagIds").filter((x): x is string => typeof x === "string");
-  const removeGallery = formData
-    .getAll("removeGallery")
+  const selectedGalleryUrls = formData
+    .getAll("selectedGalleryUrls")
     .filter((x): x is string => typeof x === "string");
 
   const slug = String(formData.get("slug") ?? "").trim();
@@ -84,8 +85,8 @@ function parseForm(formData: FormData) {
     isTop: formData.get("isTop") === "on",
     isEditorsPick: formData.get("isEditorsPick") === "on",
     tagIds,
-    removeCover: formData.get("removeCover") === "1" || formData.get("removeCover") === "on",
-    removeGallery,
+    selectedCoverUrl: String(formData.get("selectedCoverUrl") ?? "").trim() || undefined,
+    selectedGalleryUrls,
   };
 }
 
@@ -126,8 +127,8 @@ export async function createNewsAction(
   const coverFile = formData.get("coverFile");
   const galleryFiles = formData.getAll("galleryFiles");
 
-  let coverImage: string | null = null;
-  const galleryImages: string[] = [];
+  let coverImage = normalizeSelectedMediaUrl(data.selectedCoverUrl);
+  const galleryImages = [...new Set(data.selectedGalleryUrls.map((item) => normalizeSelectedMediaUrl(item)).filter((item): item is string => !!item))];
 
   try {
     if (coverFile instanceof File && coverFile.size > 0) {
@@ -136,7 +137,7 @@ export async function createNewsAction(
     for (const f of galleryFiles) {
       if (f instanceof File && f.size > 0) {
         const saved = await saveImageUpload(f, "news/gallery");
-        if (saved) galleryImages.push(saved);
+        if (saved && !galleryImages.includes(saved)) galleryImages.push(saved);
       }
     }
   } catch (e: unknown) {
@@ -209,31 +210,20 @@ export async function updateNewsAction(
   const coverFile = formData.get("coverFile");
   const galleryFiles = formData.getAll("galleryFiles");
 
-  let coverImage = existing.coverImage;
+  let coverImage = normalizeSelectedMediaUrl(data.selectedCoverUrl);
   const existingGallery = Array.isArray(existing.galleryImages)
     ? existing.galleryImages.filter((x): x is string => typeof x === "string")
     : [];
-
-  const removeSet = new Set(data.removeGallery);
-  const galleryImages = existingGallery.filter((x) => !removeSet.has(x));
+  const galleryImages = [...new Set(data.selectedGalleryUrls.map((item) => normalizeSelectedMediaUrl(item)).filter((item): item is string => !!item))];
 
   try {
-    if (data.removeCover && coverImage) {
-      await deleteUploadedImage(coverImage);
-      coverImage = null;
-    }
-    for (const src of data.removeGallery) {
-      await deleteUploadedImage(src);
-    }
-
     if (coverFile instanceof File && coverFile.size > 0) {
-      if (coverImage) await deleteUploadedImage(coverImage);
       coverImage = await saveImageUpload(coverFile, "news/cover");
     }
     for (const f of galleryFiles) {
       if (f instanceof File && f.size > 0) {
         const saved = await saveImageUpload(f, "news/gallery");
-        if (saved) galleryImages.push(saved);
+        if (saved && !galleryImages.includes(saved)) galleryImages.push(saved);
       }
     }
   } catch (e: unknown) {
@@ -279,6 +269,12 @@ export async function updateNewsAction(
     }),
   ]);
 
+  const removedUrls = [
+    existing.coverImage && existing.coverImage !== coverImage ? existing.coverImage : null,
+    ...existingGallery.filter((src) => !galleryImages.includes(src)),
+  ];
+  await cleanupUnusedMediaUrls(removedUrls);
+
   revalidateTag("home-page");
   revalidateTag("news-page");
   revalidateTag("site-sidebar");
@@ -294,14 +290,13 @@ export async function deleteNewsAction(newsId: string) {
   });
   if (!existing) return;
 
-  if (existing.coverImage) await deleteUploadedImage(existing.coverImage);
-  if (Array.isArray(existing.galleryImages)) {
-    for (const src of existing.galleryImages) {
-      if (typeof src === "string") await deleteUploadedImage(src);
-    }
-  }
-
   await prisma.news.delete({ where: { id: existing.id } });
+  await cleanupUnusedMediaUrls([
+    existing.coverImage,
+    ...(Array.isArray(existing.galleryImages)
+      ? existing.galleryImages.filter((src): src is string => typeof src === "string")
+      : []),
+  ]);
   revalidateTag("home-page");
   revalidateTag("news-page");
   revalidateTag("site-sidebar");
@@ -317,16 +312,18 @@ export async function bulkDeleteNewsAction(ids: string[]): Promise<{ ok: boolean
     select: { id: true, coverImage: true, galleryImages: true },
   });
 
-  for (const item of items) {
-    if (item.coverImage) await deleteUploadedImage(item.coverImage);
-    if (Array.isArray(item.galleryImages)) {
-      for (const src of item.galleryImages) {
-        if (typeof src === "string") await deleteUploadedImage(src);
-      }
-    }
-  }
+  const removedUrls = items.flatMap((item) => [
+    item.coverImage,
+    ...(Array.isArray(item.galleryImages)
+      ? item.galleryImages.filter((src): src is string => typeof src === "string")
+      : []),
+  ]);
 
   await prisma.news.deleteMany({ where: { id: { in: ids } } });
+  await cleanupUnusedMediaUrls(removedUrls);
+  revalidateTag("home-page");
+  revalidateTag("news-page");
+  revalidateTag("site-sidebar");
   return { ok: true };
 }
 

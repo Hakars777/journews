@@ -3,9 +3,10 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { assertEditor } from "@/lib/guard-actions";
+import { cleanupUnusedMediaUrls } from "@/lib/media-cleanup";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
-import { deleteUploadedImage, saveImageUpload } from "@/lib/uploads";
+import { normalizeSelectedMediaUrl, saveImageUpload } from "@/lib/uploads";
 
 export type AuthorActionState = {
   ok: boolean;
@@ -17,7 +18,7 @@ const schema = z.object({
   name: z.string().min(2, "Минимум 2 символа."),
   slug: z.string().min(1, "Slug обязателен."),
   bio: z.string().optional(),
-  removeAvatar: z.boolean().optional(),
+  selectedAvatarUrl: z.string().optional(),
 });
 
 function parse(formData: FormData) {
@@ -27,7 +28,7 @@ function parse(formData: FormData) {
     name,
     slug: slug || slugify(name),
     bio: String(formData.get("bio") ?? "").trim() || undefined,
-    removeAvatar: formData.get("removeAvatar") === "1" || formData.get("removeAvatar") === "on",
+    selectedAvatarUrl: String(formData.get("selectedAvatarUrl") ?? "").trim() || undefined,
   };
 }
 
@@ -56,7 +57,7 @@ export async function createAuthorAction(
   }
 
   const avatarFile = formData.get("avatarFile");
-  let avatar: string | null = null;
+  let avatar = normalizeSelectedMediaUrl(parsed.data.selectedAvatarUrl);
   try {
     if (avatarFile instanceof File && avatarFile.size > 0) {
       avatar = await saveImageUpload(avatarFile, "authors");
@@ -96,14 +97,9 @@ export async function updateAuthorAction(
   }
 
   const avatarFile = formData.get("avatarFile");
-  let avatar = existing.avatar;
+  let avatar = normalizeSelectedMediaUrl(parsed.data.selectedAvatarUrl);
   try {
-    if (parsed.data.removeAvatar && avatar) {
-      await deleteUploadedImage(avatar);
-      avatar = null;
-    }
     if (avatarFile instanceof File && avatarFile.size > 0) {
-      if (avatar) await deleteUploadedImage(avatar);
       avatar = await saveImageUpload(avatarFile, "authors");
     }
   } catch (e: unknown) {
@@ -122,6 +118,8 @@ export async function updateAuthorAction(
     },
   });
 
+  await cleanupUnusedMediaUrls([existing.avatar && existing.avatar !== avatar ? existing.avatar : null]);
+
   redirect(`/admin/authors/${existing.id}/edit`);
 }
 
@@ -135,7 +133,7 @@ export async function deleteAuthorAction(id: string) {
 
   try {
     await prisma.author.delete({ where: { id: existing.id } });
-    if (existing.avatar) await deleteUploadedImage(existing.avatar);
+    await cleanupUnusedMediaUrls([existing.avatar]);
   } catch {
     redirect("/admin/authors?error=in_use");
   }

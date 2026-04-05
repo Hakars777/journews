@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useFormState } from "react-dom";
 import { toast } from "sonner";
+import { FormSubmitButton } from "@/components/admin/form-submit-button";
+import { MediaGalleryPicker } from "@/components/admin/media/media-gallery-picker";
 import { slugify } from "@/lib/slug";
 import { RichTextEditor } from "@/components/admin/news/rich-text-editor";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -24,6 +26,11 @@ type FormState = {
 const initialFormState: FormState = { ok: true };
 
 type SelectItem = { id: string; name: string; slug?: string };
+type MediaItem = { key: string; url: string; folder: string };
+
+function uniqueStrings(items: string[]) {
+  return [...new Set(items.filter(Boolean))];
+}
 
 function toDatetimeLocal(dt?: Date | string | null) {
   if (!dt) return "";
@@ -41,6 +48,7 @@ export function NewsForm({
   categories,
   authors,
   tags,
+  mediaItems,
 }: {
   title: string;
   submitLabel: string;
@@ -67,6 +75,7 @@ export function NewsForm({
   categories: SelectItem[];
   authors: SelectItem[];
   tags: SelectItem[];
+  mediaItems: MediaItem[];
 }) {
   const [rawState, formAction] = useFormState(action, initialFormState);
   const state = rawState ?? initialFormState;
@@ -83,6 +92,8 @@ export function NewsForm({
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [slugDirty, setSlugDirty] = useState(!!initial?.slug);
   const [contentHtml, setContentHtml] = useState(initial?.contentHtml ?? "<p></p>");
+  const [coverImage, setCoverImage] = useState(initial?.coverImage ?? "");
+  const [galleryImages, setGalleryImages] = useState(initial?.galleryImages ?? []);
 
   const initialTagSet = useMemo(() => new Set(initial?.tagIds ?? []), [initial?.tagIds]);
 
@@ -108,6 +119,10 @@ export function NewsForm({
 
       <form action={formAction} className="grid gap-6">
         <input type="hidden" name="contentHtml" value={contentHtml} />
+        <input type="hidden" name="selectedCoverUrl" value={coverImage} />
+        {galleryImages.map((src) => (
+          <input key={src} type="hidden" name="selectedGalleryUrls" value={src} />
+        ))}
 
         <Card>
           <CardHeader>
@@ -306,38 +321,67 @@ export function NewsForm({
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4">
-            {initial?.coverImage ? (
+            {coverImage ? (
               <div className="grid gap-2">
-                <div className="text-sm font-medium">Текущая обложка</div>
+                <div className="text-sm font-medium">Выбранная обложка</div>
                 <div className="relative aspect-[16/9] max-w-xl overflow-hidden rounded-md border bg-muted">
-                  <Image src={initial.coverImage} alt="" fill className="object-cover" />
+                  <Image src={coverImage} alt="" fill className="object-cover" />
                 </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" name="removeCover" value="1" />
-                  <span>Удалить обложку</span>
-                </label>
+                <div>
+                  <Button type="button" variant="outline" onClick={() => setCoverImage("")}>
+                    Убрать обложку
+                  </Button>
+                </div>
               </div>
             ) : null}
 
             <div className="grid gap-2">
               <Label htmlFor="coverFile">Загрузить обложку</Label>
               <Input id="coverFile" name="coverFile" type="file" accept="image/*" />
-              <p className="text-xs text-muted-foreground">jpg/png/webp/gif, до 10MB.</p>
+              <p className="text-xs text-muted-foreground">
+                jpg/png/webp/gif, до 10MB. Если выбрать новый файл, он заменит текущую обложку.
+              </p>
             </div>
 
-            {initial?.galleryImages?.length ? (
+            <div className="grid gap-2">
+              <div className="text-sm font-medium">Галерея R2</div>
+              <div className="flex flex-wrap gap-3">
+                <MediaGalleryPicker
+                  title="Выбор обложки из галереи"
+                  items={mediaItems}
+                  selectedUrls={coverImage ? [coverImage] : []}
+                  onChange={(next) => setCoverImage(next[0] ?? "")}
+                />
+                <MediaGalleryPicker
+                  title="Выбор изображений для галереи"
+                  description="Можно выбрать несколько уже загруженных изображений. Повторно загружать их не нужно."
+                  items={mediaItems}
+                  multiple
+                  selectedUrls={galleryImages}
+                  onChange={(next) => setGalleryImages(uniqueStrings(next))}
+                />
+              </div>
+            </div>
+
+            {galleryImages.length ? (
               <div className="grid gap-2">
-                <div className="text-sm font-medium">Галерея</div>
+                <div className="text-sm font-medium">Выбранные изображения галереи</div>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {initial.galleryImages.map((src) => (
+                  {galleryImages.map((src) => (
                     <div key={src} className="grid gap-2">
                       <div className="relative aspect-[4/3] overflow-hidden rounded-md border bg-muted">
                         <Image src={src} alt="" fill className="object-cover" />
                       </div>
-                      <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <input type="checkbox" name="removeGallery" value={src} />
-                        <span>удалить</span>
-                      </label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setGalleryImages((current) => current.filter((item) => item !== src))
+                        }
+                      >
+                        Убрать
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -353,6 +397,9 @@ export function NewsForm({
                 accept="image/*"
                 multiple
               />
+              <p className="text-xs text-muted-foreground">
+                Новые файлы будут добавлены к уже выбранным изображениям из галереи.
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -386,7 +433,7 @@ export function NewsForm({
         </Card>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit">{submitLabel}</Button>
+          <FormSubmitButton idleLabel={submitLabel} />
           <Button type="button" variant="outline" onClick={() => history.back()}>
             Назад
           </Button>

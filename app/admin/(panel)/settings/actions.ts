@@ -2,8 +2,9 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { cleanupUnusedMediaUrls } from "@/lib/media-cleanup";
 import { prisma } from "@/lib/prisma";
-import { saveImageUpload, deleteUploadedImage } from "@/lib/uploads";
+import { normalizeSelectedMediaUrl, saveImageUpload } from "@/lib/uploads";
 import { assertAdmin } from "@/lib/guard-actions";
 
 function revalidateSettingsPages() {
@@ -44,13 +45,14 @@ export async function saveFaviconAction(formData: FormData): Promise<void> {
   await assertAdmin();
 
   const file = formData.get("favicon") as File | null;
-  if (!file || file.size === 0) return;
+  const selectedFaviconUrl = normalizeSelectedMediaUrl(
+    (formData.get("selectedFaviconUrl") as string | null) ?? "",
+  );
+  if ((!file || file.size === 0) && !selectedFaviconUrl) return;
 
-  // Удаляем старый favicon если был
   const old = await prisma.siteSetting.findUnique({ where: { key: "favicon" } });
-  if (old?.value) await deleteUploadedImage(old.value);
-
-  const url = await saveImageUpload(file, "site");
+  const url =
+    file && file.size > 0 ? await saveImageUpload(file, "site") : selectedFaviconUrl;
   if (!url) return;
 
   await prisma.siteSetting.upsert({
@@ -59,6 +61,7 @@ export async function saveFaviconAction(formData: FormData): Promise<void> {
     create: { key: "favicon", value: url },
   });
 
+  await cleanupUnusedMediaUrls([old?.value && old.value !== url ? old.value : null]);
   revalidateSettingsPages();
   redirect(`/admin/settings?saved=favicon&t=${Date.now()}`);
 }
@@ -67,9 +70,8 @@ export async function deleteFaviconAction() {
   await assertAdmin();
 
   const setting = await prisma.siteSetting.findUnique({ where: { key: "favicon" } });
-  if (setting?.value) await deleteUploadedImage(setting.value);
-
   await prisma.siteSetting.deleteMany({ where: { key: "favicon" } });
+  await cleanupUnusedMediaUrls([setting?.value]);
   revalidateSettingsPages();
   redirect(`/admin/settings?saved=favicon_deleted&t=${Date.now()}`);
 }

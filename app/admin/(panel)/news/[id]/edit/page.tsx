@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { NewsForm } from "@/components/admin/news/news-form";
 import { ConfirmActionForm } from "@/components/admin/confirm-action-form";
 import { prisma } from "@/lib/prisma";
+import { getAdminMediaPickerItems } from "@/lib/r2-media";
 import { deleteNewsAction, updateNewsAction } from "@/app/admin/(panel)/news/actions";
 
 export const dynamic = "force-dynamic";
@@ -38,10 +39,11 @@ export default async function AdminNewsEditPage({
   });
   if (!news) notFound();
 
-  const [categories, authors, tags] = await Promise.all([
+  const [categories, authors, tags, mediaItems] = await Promise.all([
     prisma.category.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
     prisma.author.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
     prisma.tag.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    getAdminMediaPickerItems(),
   ]);
 
   const galleryImages = Array.isArray(news.galleryImages)
@@ -78,6 +80,7 @@ export default async function AdminNewsEditPage({
         categories={categories}
         authors={authors}
         tags={tags}
+        mediaItems={mediaItems}
         initial={{
           title: news.title,
           slug: news.slug,

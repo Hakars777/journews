@@ -356,6 +356,14 @@ export function isAbsoluteUrl(value: string | null | undefined) {
   return !!value && /^https?:\/\//i.test(value);
 }
 
+export function normalizeSelectedMediaUrl(value: string | null | undefined) {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  if (isAbsoluteUrl(trimmed)) return trimmed;
+  if (trimmed.startsWith("/uploads/")) return trimmed;
+  return null;
+}
+
 export function toAbsoluteMediaUrl(value: string | null | undefined, baseUrl: string) {
   if (!value) return undefined;
   if (isAbsoluteUrl(value)) return value;

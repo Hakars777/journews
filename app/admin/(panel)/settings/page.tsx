@@ -1,7 +1,8 @@
-import Image from "next/image";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FormSubmitButton } from "@/components/admin/form-submit-button";
+import { FaviconForm } from "@/components/admin/settings/favicon-form";
 import { prisma } from "@/lib/prisma";
+import { getAdminMediaPickerItems } from "@/lib/r2-media";
 import { SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
 import {
   saveFaviconAction,
@@ -17,9 +18,12 @@ export default async function AdminSettingsPage({
 }: {
   searchParams?: { saved?: string };
 }) {
-  const rows = await prisma.siteSetting
-    .findMany({ where: { key: { in: ["favicon", "site_name", "site_description"] } } })
-    .catch(() => []);
+  const [rows, mediaItems] = await Promise.all([
+    prisma.siteSetting
+      .findMany({ where: { key: { in: ["favicon", "site_name", "site_description"] } } })
+      .catch(() => []),
+    getAdminMediaPickerItems(),
+  ]);
   const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
 
   const faviconUrl = map["favicon"] ?? null;
@@ -87,46 +91,12 @@ export default async function AdminSettingsPage({
         </form>
       </div>
 
-      {/* Favicon */}
-      <div className="rounded-md border p-6 grid gap-4">
-        <h2 className="font-semibold">Favicon</h2>
-
-        {faviconUrl ? (
-          <div className="flex items-center gap-4">
-            <div className="relative h-10 w-10 overflow-hidden rounded border bg-muted">
-              <Image src={faviconUrl} alt="favicon" fill className="object-contain p-1" />
-            </div>
-            <span className="text-sm text-muted-foreground truncate max-w-[240px]">{faviconUrl}</span>
-            <form action={deleteFaviconAction}>
-              <FormSubmitButton
-                idleLabel="Удалить"
-                pendingLabel="Удаляю..."
-                variant="link"
-                className="h-auto p-0 text-destructive"
-              />
-            </form>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">Favicon не установлен — используется стандартный значок.</p>
-        )}
-
-        <form action={saveFaviconAction} className="grid gap-3">
-          <label className="text-sm font-medium">
-            {faviconUrl ? "Заменить favicon" : "Загрузить favicon"}
-          </label>
-          <p className="text-xs text-muted-foreground">Рекомендуемый размер: 32×32 или 64×64 пикселей. Форматы: PNG, ICO, WebP.</p>
-          <div className="flex gap-2">
-            <input
-              type="file"
-              name="favicon"
-              accept="image/png,image/x-icon,image/webp,image/jpeg"
-              required
-              className="text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground"
-            />
-            <FormSubmitButton idleLabel="Сохранить" />
-          </div>
-        </form>
-      </div>
+      <FaviconForm
+        initialFaviconUrl={faviconUrl}
+        mediaItems={mediaItems}
+        saveAction={saveFaviconAction}
+        deleteAction={deleteFaviconAction}
+      />
     </div>
   );
 }
