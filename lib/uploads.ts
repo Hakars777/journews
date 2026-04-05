@@ -8,8 +8,11 @@ import sharp from "sharp";
 const UPLOAD_ROOT = path.join(process.cwd(), "public", "uploads");
 const ALLOWED_EXT = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
 const MAX_BYTES = 10 * 1024 * 1024;
-const MAX_DIMENSION = 1920;
-const WEBP_QUALITY = 82;
+const MAX_DIMENSION = 2560;
+const PASSTHROUGH_MAX_BYTES = 3 * 1024 * 1024;
+const PHOTO_WEBP_QUALITY = 88;
+const GRAPHIC_WEBP_QUALITY = 92;
+const MIN_RECOMPRESS_SAVINGS_RATIO = 0.92;
 const DEFAULT_BUCKET = "media";
 const DEFAULT_R2_REGION = "auto";
 const STORAGE_PROVIDERS = new Set(["local", "supabase", "r2"]);
@@ -365,6 +368,7 @@ export async function ensureUploadDirs() {
 
 async function compressImage(file: File): Promise<{ buffer: Buffer; ext: string; mime: string }> {
   const ext = path.extname(file.name).toLowerCase();
+  const originalExt = safeExt(file.name);
   const input = Buffer.from(await file.arrayBuffer());
 
   // GIF stays as-is so animated images do not break during compression.
@@ -372,10 +376,49 @@ async function compressImage(file: File): Promise<{ buffer: Buffer; ext: string;
     return { buffer: input, ext: ".gif", mime: "image/gif" };
   }
 
-  const buffer = await sharp(input)
-    .resize(MAX_DIMENSION, MAX_DIMENSION, { fit: "inside", withoutEnlargement: true })
-    .webp({ quality: WEBP_QUALITY })
-    .toBuffer();
+  const metadata = await sharp(input).metadata();
+  const width = metadata.width ?? 0;
+  const height = metadata.height ?? 0;
+  const needsResize = width > MAX_DIMENSION || height > MAX_DIMENSION;
+
+  if (originalExt && !needsResize && input.byteLength <= PASSTHROUGH_MAX_BYTES) {
+    return {
+      buffer: input,
+      ext: originalExt,
+      mime: getMimeType(originalExt, file.type),
+    };
+  }
+
+  const transformer = sharp(input)
+    .rotate()
+    .resize(MAX_DIMENSION, MAX_DIMENSION, { fit: "inside", withoutEnlargement: true });
+
+  const isGraphic = ext === ".png" || metadata.hasAlpha === true;
+  const buffer = await (isGraphic
+    ? transformer.webp({
+        quality: GRAPHIC_WEBP_QUALITY,
+        nearLossless: true,
+        alphaQuality: 100,
+        effort: 6,
+      })
+    : transformer.webp({
+        quality: PHOTO_WEBP_QUALITY,
+        smartSubsample: true,
+        effort: 5,
+      })
+  ).toBuffer();
+
+  if (
+    originalExt &&
+    !needsResize &&
+    buffer.byteLength >= Math.round(input.byteLength * MIN_RECOMPRESS_SAVINGS_RATIO)
+  ) {
+    return {
+      buffer: input,
+      ext: originalExt,
+      mime: getMimeType(originalExt, file.type),
+    };
+  }
 
   return { buffer, ext: ".webp", mime: "image/webp" };
 }

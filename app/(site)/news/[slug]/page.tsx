@@ -220,7 +220,15 @@ export default async function NewsPage({ params }: { params: { slug: string } })
 
           {news.coverImage ? (
             <div className="mt-5 relative aspect-[16/9] overflow-hidden rounded-md bg-muted">
-              <Image src={news.coverImage} alt={news.title} fill className="object-cover" priority sizes="(max-width: 1024px) 100vw, calc(100vw - 380px)" />
+              <Image
+                src={news.coverImage}
+                alt={news.title}
+                fill
+                className="object-cover"
+                priority
+                sizes="(max-width: 1024px) 100vw, calc(100vw - 380px)"
+                quality={90}
+              />
             </div>
           ) : null}
 
@@ -228,7 +236,7 @@ export default async function NewsPage({ params }: { params: { slug: string } })
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {gallery.slice(0, 6).map((src) => (
                 <div key={src} className="relative aspect-[4/3] overflow-hidden rounded-md bg-muted">
-                  <Image src={src} alt="" fill className="object-cover" />
+                  <Image src={src} alt="" fill className="object-cover" sizes="(max-width: 640px) 50vw, 33vw" quality={88} />
                 </div>
               ))}
             </div>

@@ -30,7 +30,7 @@ function Cover({
   if (src) {
     return (
       <div className={cn("relative overflow-hidden rounded-md bg-muted", className)}>
-        <Image src={src} alt={alt} fill className="object-cover" priority={priority} sizes={sizes} />
+        <Image src={src} alt={alt} fill className="object-cover" priority={priority} sizes={sizes} quality={85} />
       </div>
     );
   }
@@ -233,4 +233,3 @@ export function NewsCardSmall({
     </article>
   );
 }
-
