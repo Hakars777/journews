@@ -33,6 +33,17 @@ export const revalidate = 300;
 
 const PAGE_SIZE = 10;
 
+const newsCardSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  lead: true,
+  coverImage: true,
+  publishedAt: true,
+  category: { select: { name: true, slug: true } },
+  author: { select: { name: true, slug: true } },
+} as const;
+
 const getHomePageData = unstable_cache(
   async (page: number) => {
     const { skip, take } = getPagination(page, PAGE_SIZE);
@@ -41,36 +52,10 @@ const getHomePageData = unstable_cache(
       where: { status: "PUBLISHED", isTop: true, publishedAt: { not: null } },
       orderBy: { publishedAt: "desc" },
       take: 5,
-      select: {
-        id: true, slug: true, title: true, lead: true,
-        coverImage: true, publishedAt: true,
-        category: { select: { name: true, slug: true } },
-        author: { select: { name: true, slug: true } },
-      },
+      select: newsCardSelect,
     });
 
     const topIds = (top as NewsItem[]).map((t) => t.id);
-
-    const feedWhere = {
-      status: "PUBLISHED" as const,
-      publishedAt: { not: null },
-      ...(topIds.length ? { id: { notIn: topIds } } : {}),
-    };
-
-    const [total, feed] = await Promise.all([
-      prisma.news.count({ where: feedWhere }),
-      prisma.news.findMany({
-        where: feedWhere,
-        orderBy: { publishedAt: "desc" },
-        skip, take,
-        select: {
-          id: true, slug: true, title: true, lead: true,
-          coverImage: true, publishedAt: true,
-          category: { select: { name: true, slug: true } },
-          author: { select: { name: true, slug: true } },
-        },
-      }),
-    ]);
 
     // Latest 6 articles per category for category sections (top 3 categories by article count)
     const topCategories = await prisma.category.findMany({
@@ -91,19 +76,37 @@ const getHomePageData = unstable_cache(
             status: "PUBLISHED",
             publishedAt: { not: null },
             categoryId: cat.id,
+            ...(topIds.length ? { id: { notIn: topIds } } : {}),
           },
           orderBy: { publishedAt: "desc" },
           take: 4,
-          select: {
-            id: true, slug: true, title: true, lead: true,
-            coverImage: true, publishedAt: true,
-            category: { select: { name: true, slug: true } },
-            author: { select: { name: true, slug: true } },
-          },
+          select: newsCardSelect,
         });
         return { ...cat, articles };
       }),
     );
+
+    const excludedIds = [
+      ...topIds,
+      ...categorySections.flatMap((section) => section.articles.map((article) => article.id)),
+    ];
+
+    const feedWhere = {
+      status: "PUBLISHED" as const,
+      publishedAt: { not: null },
+      ...(excludedIds.length ? { id: { notIn: excludedIds } } : {}),
+    };
+
+    const [total, feed] = await Promise.all([
+      prisma.news.count({ where: feedWhere }),
+      prisma.news.findMany({
+        where: feedWhere,
+        orderBy: { publishedAt: "desc" },
+        skip,
+        take,
+        select: newsCardSelect,
+      }),
+    ]);
 
     return { top, feed, totalPages: pageCount(total, PAGE_SIZE), categorySections };
   },

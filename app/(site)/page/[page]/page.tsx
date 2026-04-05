@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { Separator } from "@/components/ui/separator";
-import { NewsCardBig, NewsCardRow, NewsCardSmall } from "@/components/news/news-cards";
+import { NewsCardRow } from "@/components/news/news-cards";
 import { PaginationLinks } from "@/components/site/pagination";
 import { SiteSidebar } from "@/components/site/site-sidebar";
 import { prisma } from "@/lib/prisma";
@@ -14,6 +14,17 @@ import { buildCanonicalUrl } from "@/lib/seo";
 export const revalidate = 300;
 
 const PAGE_SIZE = 10;
+
+const newsCardSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  lead: true,
+  coverImage: true,
+  publishedAt: true,
+  category: { select: { name: true, slug: true } },
+  author: { select: { name: true, slug: true } },
+} as const;
 
 export async function generateStaticParams() {
   // Pre-render first 10 pages of the homepage feed
@@ -33,10 +44,42 @@ const getHomePageData = unstable_cache(
 
     const topIds = top.map((t) => t.id);
 
+    const topCategories = await prisma.category.findMany({
+      where: {
+        news: {
+          some: { status: "PUBLISHED", publishedAt: { not: null } },
+        },
+      },
+      orderBy: { news: { _count: "desc" } },
+      take: 3,
+      select: { id: true },
+    });
+
+    const categorySections = await Promise.all(
+      topCategories.map(async (cat) =>
+        prisma.news.findMany({
+          where: {
+            status: "PUBLISHED",
+            publishedAt: { not: null },
+            categoryId: cat.id,
+            ...(topIds.length ? { id: { notIn: topIds } } : {}),
+          },
+          orderBy: { publishedAt: "desc" },
+          take: 4,
+          select: { id: true },
+        }),
+      ),
+    );
+
+    const excludedIds = [
+      ...topIds,
+      ...categorySections.flatMap((section) => section.map((article) => article.id)),
+    ];
+
     const feedWhere = {
       status: "PUBLISHED" as const,
       publishedAt: { not: null },
-      ...(topIds.length ? { id: { notIn: topIds } } : {}),
+      ...(excludedIds.length ? { id: { notIn: excludedIds } } : {}),
     };
 
     const [total, feed] = await Promise.all([
@@ -46,16 +89,7 @@ const getHomePageData = unstable_cache(
         orderBy: { publishedAt: "desc" },
         skip,
         take,
-        select: {
-          id: true,
-          slug: true,
-          title: true,
-          lead: true,
-          coverImage: true,
-          publishedAt: true,
-          category: { select: { name: true, slug: true } },
-          author: { select: { name: true, slug: true } },
-        },
+        select: newsCardSelect,
       }),
     ]);
 
