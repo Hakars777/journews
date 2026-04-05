@@ -8,7 +8,14 @@ import { SiteSidebar } from "@/components/site/site-sidebar";
 import { NewsCardRow } from "@/components/news/news-cards";
 import { prisma } from "@/lib/prisma";
 import { getPagination, pageCount } from "@/lib/pagination";
-import { buildCanonicalUrl } from "@/lib/seo";
+import {
+  buildBreadcrumbJsonLd,
+  buildCanonicalUrl,
+  buildCollectionPageJsonLd,
+  buildTagPageDescription,
+  toJsonLd,
+} from "@/lib/seo";
+import { getSiteSettings } from "@/lib/site";
 
 export const revalidate = 300;
 
@@ -71,12 +78,30 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const tag = await getTagMeta(params.slug);
+  const [tag, settings] = await Promise.all([
+    getTagMeta(params.slug),
+    getSiteSettings().catch(() => ({ name: "Jour News" })),
+  ]);
   if (!tag) return { title: "Պիտակը չի գտնվել" };
+  const description = buildTagPageDescription(tag.name);
   return {
     title: `Պիտակ: ${tag.name}`,
+    description,
     alternates: {
       canonical: buildCanonicalUrl(`/tag/${tag.slug}`),
+    },
+    openGraph: {
+      type: "website",
+      locale: "hy_AM",
+      siteName: settings.name,
+      title: `Պիտակ: ${tag.name}`,
+      description,
+      url: buildCanonicalUrl(`/tag/${tag.slug}`),
+    },
+    twitter: {
+      card: "summary",
+      title: `Պիտակ: ${tag.name}`,
+      description,
     },
   };
 }
@@ -90,21 +115,39 @@ export default async function TagPage({
   if (!data) notFound();
 
   const { tag, items, totalPages } = data;
+  const description = buildTagPageDescription(tag.name);
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Գլխավոր", path: "/" },
+    { name: `Պիտակ: ${tag.name}`, path: `/tag/${tag.slug}` },
+  ]);
+  const collectionJsonLd = buildCollectionPageJsonLd({
+    name: `Պիտակ: ${tag.name}`,
+    description,
+    path: `/tag/${tag.slug}`,
+  });
 
   return (
     <div className="container py-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLd(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLd(collectionJsonLd) }}
+      />
       <div className="grid gap-8 lg:grid-cols-[1fr,340px]">
         <div className="min-w-0">
           <Breadcrumbs
             items={[
-              { href: "/", label: "Главная" },
-              { label: `Тег: ${tag.name}` },
+              { href: "/", label: "Գլխավոր" },
+              { label: `Պիտակ: ${tag.name}` },
             ]}
           />
 
           <div className="mt-4">
             <h1 className="jn-headline text-2xl font-semibold uppercase tracking-wide">
-              Тег: {tag.name}
+              Պիտակ: {tag.name}
             </h1>
           </div>
 
@@ -113,7 +156,7 @@ export default async function TagPage({
               items.map((n) => <NewsCardRow key={n.id} item={n} />)
             ) : (
               <div className="rounded-md border p-6 text-sm text-muted-foreground">
-                По этому тегу пока нет опубликованных новостей.
+                Այս պիտակով դեռ հրապարակված նյութեր չկան։
               </div>
             )}
           </div>

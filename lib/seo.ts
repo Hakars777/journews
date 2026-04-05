@@ -49,3 +49,58 @@ export function buildWebsiteJsonLd(name: string, description: string) {
     },
   };
 }
+
+export function buildCategoryPageDescription(name: string, description?: string | null) {
+  const value = description?.trim();
+  return value || `${name} բաժնի վերջին հրապարակումները Jour News-ում։`;
+}
+
+export function buildTagPageDescription(name: string) {
+  return `${name} պիտակով հրապարակված նյութերը Jour News-ում։`;
+}
+
+export function buildAuthorPageDescription(name: string, bio?: string | null) {
+  const value = bio?.trim();
+  return value || `${name}-ի հրապարակումները Jour News-ում։`;
+}
+
+export function buildCollectionPageJsonLd({
+  name,
+  description,
+  path,
+}: {
+  name: string;
+  description: string;
+  path: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name,
+    description,
+    url: buildCanonicalUrl(path),
+    inLanguage: "hy",
+    isPartOf: buildCanonicalUrl("/"),
+  };
+}
+
+export function buildPersonJsonLd({
+  name,
+  path,
+  description,
+  image,
+}: {
+  name: string;
+  path: string;
+  description?: string;
+  image?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name,
+    url: buildCanonicalUrl(path),
+    description,
+    image,
+  };
+}

@@ -9,7 +9,16 @@ import { SiteSidebar } from "@/components/site/site-sidebar";
 import { NewsCardRow } from "@/components/news/news-cards";
 import { prisma } from "@/lib/prisma";
 import { getPagination, pageCount, parsePage } from "@/lib/pagination";
-import { buildCanonicalUrl } from "@/lib/seo";
+import {
+  buildAuthorPageDescription,
+  buildBreadcrumbJsonLd,
+  buildCanonicalUrl,
+  buildCollectionPageJsonLd,
+  buildPersonJsonLd,
+  toJsonLd,
+} from "@/lib/seo";
+import { getSiteSettings } from "@/lib/site";
+import { toAbsoluteMediaUrl } from "@/lib/uploads";
 
 export const revalidate = 300;
 
@@ -86,13 +95,33 @@ export async function generateMetadata({
 }: {
   params: { slug: string; page: string };
 }): Promise<Metadata> {
-  const author = await getAuthorMeta(params.slug);
+  const [author, settings] = await Promise.all([
+    getAuthorMeta(params.slug),
+    getSiteSettings().catch(() => ({ name: "Jour News" })),
+  ]);
   if (!author) return { title: "Հեղինակը չի գտնվել" };
+  const description = buildAuthorPageDescription(author.name, author.bio);
+  const image = toAbsoluteMediaUrl(author.avatar, buildCanonicalUrl("/"));
   return {
     title: `${author.name} | Էջ ${params.page}`,
-    description: author.bio ?? undefined,
+    description,
     alternates: {
       canonical: buildCanonicalUrl(`/author/${author.slug}/${params.page}`),
+    },
+    openGraph: {
+      type: "profile",
+      locale: "hy_AM",
+      siteName: settings.name,
+      title: `${author.name} | Էջ ${params.page}`,
+      description,
+      url: buildCanonicalUrl(`/author/${author.slug}/${params.page}`),
+      images: image ? [{ url: image }] : undefined,
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title: `${author.name} | Էջ ${params.page}`,
+      description,
+      images: image ? [image] : undefined,
     },
   };
 }
@@ -110,16 +139,46 @@ export default async function AuthorPageN({
 
   const { author, items, total, totalPages } = data;
   if (page > totalPages) notFound();
+  const description = buildAuthorPageDescription(author.name, author.bio);
+  const image = toAbsoluteMediaUrl(author.avatar, buildCanonicalUrl("/"));
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Գլխավոր", path: "/" },
+    { name: author.name, path: `/author/${author.slug}` },
+    { name: `Էջ ${page}`, path: `/author/${author.slug}/${page}` },
+  ]);
+  const personJsonLd = buildPersonJsonLd({
+    name: author.name,
+    path: `/author/${author.slug}`,
+    description,
+    image: image ?? undefined,
+  });
+  const collectionJsonLd = buildCollectionPageJsonLd({
+    name: `${author.name} | Էջ ${page}`,
+    description,
+    path: `/author/${author.slug}/${page}`,
+  });
 
   return (
     <div className="container py-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLd(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLd(personJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLd(collectionJsonLd) }}
+      />
       <div className="grid gap-8 lg:grid-cols-[1fr,340px]">
         <div className="min-w-0">
           <Breadcrumbs
             items={[
-              { href: "/", label: "Главная" },
+              { href: "/", label: "Գլխավոր" },
               { href: `/author/${author.slug}`, label: author.name },
-              { label: `Страница ${page}` },
+              { label: `Էջ ${page}` },
             ]}
           />
 
@@ -155,7 +214,7 @@ export default async function AuthorPageN({
               items.map((n) => <NewsCardRow key={n.id} item={n} />)
             ) : (
               <div className="rounded-md border p-6 text-sm text-muted-foreground">
-                У этого автора пока нет опубликованных статей.
+                Այս հեղինակի մոտ դեռ հրապարակված նյութեր չկան։
               </div>
             )}
           </div>
@@ -180,9 +239,5 @@ export default async function AuthorPageN({
 }
 
 function pluralArticles(n: number) {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return "статья";
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return "статьи";
-  return "статей";
+  return n === 1 ? "հրապարակում" : "հրապարակում";
 }

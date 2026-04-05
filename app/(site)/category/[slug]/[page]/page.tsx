@@ -8,7 +8,14 @@ import { SiteSidebar } from "@/components/site/site-sidebar";
 import { NewsCardRow } from "@/components/news/news-cards";
 import { prisma } from "@/lib/prisma";
 import { getPagination, pageCount, parsePage } from "@/lib/pagination";
-import { buildCanonicalUrl } from "@/lib/seo";
+import {
+  buildBreadcrumbJsonLd,
+  buildCanonicalUrl,
+  buildCategoryPageDescription,
+  buildCollectionPageJsonLd,
+  toJsonLd,
+} from "@/lib/seo";
+import { getSiteSettings } from "@/lib/site";
 
 export const revalidate = 300;
 
@@ -85,13 +92,30 @@ export async function generateMetadata({
 }: {
   params: { slug: string; page: string };
 }): Promise<Metadata> {
-  const category = await getCategoryMeta(params.slug);
+  const [category, settings] = await Promise.all([
+    getCategoryMeta(params.slug),
+    getSiteSettings().catch(() => ({ name: "Jour News" })),
+  ]);
   if (!category) return { title: "Բաժինը չի գտնվել" };
+  const description = buildCategoryPageDescription(category.name, category.description);
   return {
     title: `${category.name} | Էջ ${params.page}`,
-    description: category.description ?? undefined,
+    description,
     alternates: {
       canonical: buildCanonicalUrl(`/category/${category.slug}/${params.page}`),
+    },
+    openGraph: {
+      type: "website",
+      locale: "hy_AM",
+      siteName: settings.name,
+      title: `${category.name} | Էջ ${params.page}`,
+      description,
+      url: buildCanonicalUrl(`/category/${category.slug}/${params.page}`),
+    },
+    twitter: {
+      card: "summary",
+      title: `${category.name} | Էջ ${params.page}`,
+      description,
     },
   };
 }
@@ -109,16 +133,35 @@ export default async function CategoryPageN({
 
   const { category, items, totalPages } = data;
   if (page > totalPages) notFound();
+  const description = buildCategoryPageDescription(category.name, category.description);
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Գլխավոր", path: "/" },
+    { name: category.name, path: `/category/${category.slug}` },
+    { name: `Էջ ${page}`, path: `/category/${category.slug}/${page}` },
+  ]);
+  const collectionJsonLd = buildCollectionPageJsonLd({
+    name: `${category.name} | Էջ ${page}`,
+    description,
+    path: `/category/${category.slug}/${page}`,
+  });
 
   return (
     <div className="container py-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLd(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLd(collectionJsonLd) }}
+      />
       <div className="grid gap-8 lg:grid-cols-[1fr,340px]">
         <div className="min-w-0">
           <Breadcrumbs
             items={[
-              { href: "/", label: "Главная" },
+              { href: "/", label: "Գլխավոր" },
               { href: `/category/${category.slug}`, label: category.name },
-              { label: `Страница ${page}` },
+              { label: `Էջ ${page}` },
             ]}
           />
 
@@ -136,7 +179,7 @@ export default async function CategoryPageN({
               items.map((n) => <NewsCardRow key={n.id} item={n} />)
             ) : (
               <div className="rounded-md border p-6 text-sm text-muted-foreground">
-                В этой категории пока нет опубликованных новостей.
+                Այս բաժնում դեռ հրապարակված նյութեր չկան։
               </div>
             )}
           </div>

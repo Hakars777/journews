@@ -122,7 +122,7 @@ export async function generateMetadata({
     getNewsPageData(decodeURIComponent(params.slug)).catch(() => null),
     getSiteSettings().catch(() => ({ name: "", description: "" })),
   ]);
-  if (!data) return { title: "Новость не найдена" };
+  if (!data) return { title: "Նյութը չի գտնվել" };
 
   const { news } = data;
   const baseUrl = getBaseUrl();
@@ -219,7 +219,7 @@ export default async function NewsPage({ params }: { params: { slug: string } })
         <article className="min-w-0">
           <Breadcrumbs
             items={[
-              { href: "/", label: "Главная" },
+              { href: "/", label: "Գլխավոր" },
               ...(news.category ? [{ href: `/category/${news.category.slug}`, label: news.category.name }] : []),
               { label: news.title },
             ]}
