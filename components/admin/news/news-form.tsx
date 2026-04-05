@@ -337,7 +337,13 @@ export function NewsForm({
 
             <div className="grid gap-2">
               <Label htmlFor="coverFile">Загрузить обложку</Label>
-              <Input id="coverFile" name="coverFile" type="file" accept="image/*" />
+              <Input
+                id="coverFile"
+                name="coverFile"
+                type="file"
+                accept="image/*"
+                className="max-w-xl"
+              />
               <p className="text-xs text-muted-foreground">
                 jpg/png/webp/gif, до 10MB. Если выбрать новый файл, он заменит текущую обложку.
               </p>
@@ -348,6 +354,8 @@ export function NewsForm({
               <div className="flex flex-wrap gap-3">
                 <MediaGalleryPicker
                   title="Выбор обложки из галереи"
+                  buttonLabel="Обложка из галереи"
+                  selectedButtonLabel="Заменить обложку"
                   items={mediaItems}
                   selectedUrls={coverImage ? [coverImage] : []}
                   onChange={(next) => setCoverImage(next[0] ?? "")}
@@ -355,6 +363,8 @@ export function NewsForm({
                 <MediaGalleryPicker
                   title="Выбор изображений для галереи"
                   description="Можно выбрать несколько уже загруженных изображений. Повторно загружать их не нужно."
+                  buttonLabel="Фото для галереи"
+                  selectedButtonLabel="Фото для галереи"
                   items={mediaItems}
                   multiple
                   selectedUrls={galleryImages}
@@ -396,6 +406,7 @@ export function NewsForm({
                 type="file"
                 accept="image/*"
                 multiple
+                className="max-w-xl"
               />
               <p className="text-xs text-muted-foreground">
                 Новые файлы будут добавлены к уже выбранным изображениям из галереи.

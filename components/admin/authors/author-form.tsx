@@ -119,7 +119,13 @@ export function AuthorForm({
 
             <div className="grid gap-2">
               <Label htmlFor="avatarFile">Загрузить аватар</Label>
-              <Input id="avatarFile" name="avatarFile" type="file" accept="image/*" />
+              <Input
+                id="avatarFile"
+                name="avatarFile"
+                type="file"
+                accept="image/*"
+                className="max-w-xl"
+              />
               <p className="text-xs text-muted-foreground">
                 jpg/png/webp/gif, до 10MB. Новый файл заменит выбранный аватар.
               </p>
@@ -129,6 +135,8 @@ export function AuthorForm({
               <div className="text-sm font-medium">Галерея R2</div>
               <MediaGalleryPicker
                 title="Выбор аватара из галереи"
+                buttonLabel="Аватар из галереи"
+                selectedButtonLabel="Заменить аватар"
                 items={mediaItems}
                 selectedUrls={avatar ? [avatar] : []}
                 onChange={(next) => setAvatar(next[0] ?? "")}

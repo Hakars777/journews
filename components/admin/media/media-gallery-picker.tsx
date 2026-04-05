@@ -29,6 +29,8 @@ export function MediaGalleryPicker({
   title,
   description,
   emptyMessage = "Галерея пока пуста.",
+  buttonLabel = "Выбрать из галереи",
+  selectedButtonLabel,
   items,
   multiple = false,
   selectedUrls,
@@ -37,6 +39,8 @@ export function MediaGalleryPicker({
   title: string;
   description?: string;
   emptyMessage?: string;
+  buttonLabel?: string;
+  selectedButtonLabel?: string;
   items: MediaGalleryItem[];
   multiple?: boolean;
   selectedUrls: string[];
@@ -60,11 +64,11 @@ export function MediaGalleryPicker({
 
   const triggerLabel = multiple
     ? selectedUrls.length
-      ? `Галерея (${selectedUrls.length})`
-      : "Выбрать из галереи"
+      ? selectedButtonLabel ?? `${buttonLabel} (${selectedUrls.length})`
+      : buttonLabel
     : selectedUrls[0]
-      ? "Заменить из галереи"
-      : "Выбрать из галереи";
+      ? selectedButtonLabel ?? "Заменить из галереи"
+      : buttonLabel;
 
   const toggle = (url: string) => {
     if (!multiple) {

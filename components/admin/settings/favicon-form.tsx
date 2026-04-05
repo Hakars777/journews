@@ -67,11 +67,13 @@ export function FaviconForm({
             type="file"
             name="favicon"
             accept="image/png,image/x-icon,image/webp,image/jpeg"
-            className="text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground"
+            className="max-w-xl text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground"
           />
           <MediaGalleryPicker
             title="Выбор favicon из галереи"
             description="Можно взять уже загруженное изображение из R2 вместо повторной загрузки."
+            buttonLabel="Favicon из галереи"
+            selectedButtonLabel="Заменить favicon"
             items={mediaItems}
             selectedUrls={faviconUrl ? [faviconUrl] : []}
             onChange={(next) => setFaviconUrl(next[0] ?? "")}
