@@ -13,16 +13,70 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type MediaGalleryItem = {
   key: string;
   url: string;
   folder: string;
+  lastModified?: Date | string | null;
 };
+
+type SortMode = "newest" | "oldest" | "name-asc" | "name-desc";
 
 function fileNameFromKey(key: string) {
   const parts = key.split("/");
   return parts[parts.length - 1] || key;
+}
+
+function toTimestamp(value?: Date | string | null) {
+  if (!value) return 0;
+  const date = value instanceof Date ? value : new Date(value);
+  const ts = date.getTime();
+  return Number.isFinite(ts) ? ts : 0;
+}
+
+function formatUploadDate(value?: Date | string | null) {
+  const ts = toTimestamp(value);
+  if (!ts) return "Дата неизвестна";
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(ts));
+}
+
+function compareItems(left: MediaGalleryItem, right: MediaGalleryItem, sortMode: SortMode) {
+  if (sortMode === "newest") {
+    return (
+      toTimestamp(right.lastModified) - toTimestamp(left.lastModified) ||
+      left.key.localeCompare(right.key)
+    );
+  }
+
+  if (sortMode === "oldest") {
+    return (
+      toTimestamp(left.lastModified) - toTimestamp(right.lastModified) ||
+      left.key.localeCompare(right.key)
+    );
+  }
+
+  const leftName = fileNameFromKey(left.key);
+  const rightName = fileNameFromKey(right.key);
+
+  if (sortMode === "name-asc") {
+    return leftName.localeCompare(rightName) || left.key.localeCompare(right.key);
+  }
+
+  return rightName.localeCompare(leftName) || left.key.localeCompare(right.key);
 }
 
 export function MediaGalleryPicker({
@@ -48,19 +102,23 @@ export function MediaGalleryPicker({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [sortMode, setSortMode] = useState<SortMode>("newest");
 
   const selectedSet = useMemo(() => new Set(selectedUrls), [selectedUrls]);
   const filteredItems = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    if (!normalized) return items;
-    return items.filter((item) => {
-      return (
-        item.folder.toLowerCase().includes(normalized) ||
-        item.key.toLowerCase().includes(normalized) ||
-        fileNameFromKey(item.key).toLowerCase().includes(normalized)
-      );
-    });
-  }, [items, query]);
+    const baseItems = !normalized
+      ? items
+      : items.filter((item) => {
+          return (
+            item.folder.toLowerCase().includes(normalized) ||
+            item.key.toLowerCase().includes(normalized) ||
+            fileNameFromKey(item.key).toLowerCase().includes(normalized)
+          );
+        });
+
+    return [...baseItems].sort((left, right) => compareItems(left, right, sortMode));
+  }, [items, query, sortMode]);
 
   const triggerLabel = multiple
     ? selectedUrls.length
@@ -104,12 +162,28 @@ export function MediaGalleryPicker({
 
           <div className="grid gap-3 border-b px-6 py-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Поиск по имени файла или папке"
-                className="max-w-md"
-              />
+              <div className="flex flex-1 flex-wrap items-center gap-3">
+                <Input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Поиск по имени файла или папке"
+                  className="max-w-md"
+                />
+                <div className="grid gap-1">
+                  <span className="text-xs text-muted-foreground">Сортировка</span>
+                  <Select value={sortMode} onValueChange={(value) => setSortMode(value as SortMode)}>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue placeholder="Выберите сортировку" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="newest">Сначала новые</SelectItem>
+                      <SelectItem value="oldest">Сначала старые</SelectItem>
+                      <SelectItem value="name-asc">Имя: A → Z</SelectItem>
+                      <SelectItem value="name-desc">Имя: Z → A</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">Найдено: {filteredItems.length}</Badge>
                 {multiple ? <Badge variant="outline">Выбрано: {selectedUrls.length}</Badge> : null}
@@ -167,6 +241,9 @@ export function MediaGalleryPicker({
                           </span>
                         </div>
                         <div className="truncate text-sm font-medium">{fileNameFromKey(item.key)}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatUploadDate(item.lastModified)}
+                        </div>
                       </div>
                     </button>
                   );
