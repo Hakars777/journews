@@ -88,8 +88,8 @@ export function MediaGalleryPicker({
           {triggerLabel}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[85vh] max-w-6xl overflow-hidden p-0">
-        <div className="grid h-full grid-rows-[auto_auto_1fr]">
+      <DialogContent className="h-[85vh] max-h-[85vh] max-w-6xl overflow-hidden p-0">
+        <div className="flex h-full min-h-0 flex-col">
           <DialogHeader className="border-b px-6 py-5">
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>
@@ -130,7 +130,7 @@ export function MediaGalleryPicker({
             ) : null}
           </div>
 
-          <div className="overflow-y-auto px-6 py-5">
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
             {filteredItems.length ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                 {filteredItems.map((item) => {
