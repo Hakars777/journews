@@ -60,7 +60,7 @@ export type AdminMediaOverview =
     };
 
 type MediaOverviewOptions = {
-  previewLimit?: number;
+  previewLimit?: number | null;
 };
 
 function trimEnv(name: string) {
@@ -125,7 +125,8 @@ export function getFreeTierBytes() {
 export async function getAdminMediaOverview(
   options: MediaOverviewOptions = {},
 ): Promise<AdminMediaOverview> {
-  const previewLimit = options.previewLimit ?? MAX_PREVIEW_ITEMS;
+  const previewLimit =
+    options.previewLimit === undefined ? MAX_PREVIEW_ITEMS : options.previewLimit;
 
   try {
     const provider = getConfiguredStorageProvider();
@@ -231,11 +232,14 @@ export async function getAdminMediaOverview(
         return a.name.localeCompare(b.name);
       })
       .slice(0, MAX_FOLDER_ITEMS),
-    items: items.filter((item) => item.isImage).slice(0, previewLimit),
+    items:
+      previewLimit === null
+        ? items.filter((item) => item.isImage)
+        : items.filter((item) => item.isImage).slice(0, previewLimit),
   };
 }
 
-export async function getAdminMediaPickerItems(limit = 120): Promise<MediaPreviewItem[]> {
+export async function getAdminMediaPickerItems(limit: number | null = null): Promise<MediaPreviewItem[]> {
   const overview = await getAdminMediaOverview({ previewLimit: limit });
   return overview.status === "ready" ? overview.items : [];
 }
