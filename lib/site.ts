@@ -3,6 +3,13 @@ import { prisma } from "@/lib/prisma";
 
 export const SITE_NAME = "Jour News";
 export const SITE_DESCRIPTION = "Jour News — новостной сайт.";
+export const MOBILE_ARTICLE_TITLE_SCALE = 90;
+
+function parseMobileArticleTitleScale(value: string | undefined) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return MOBILE_ARTICLE_TITLE_SCALE;
+  return Math.max(70, Math.min(100, Math.round(parsed)));
+}
 
 export function getBaseUrl() {
   const envUrl = process.env.NEXTAUTH_URL || process.env.SITE_URL;
@@ -13,12 +20,19 @@ export function getBaseUrl() {
 export const getSiteSettings = unstable_cache(
   async () => {
     const rows = await prisma.siteSetting
-      .findMany({ where: { key: { in: ["site_name", "site_description"] } } })
+      .findMany({
+        where: {
+          key: {
+            in: ["site_name", "site_description", "mobile_article_title_scale"],
+          },
+        },
+      })
       .catch(() => []);
     const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
     return {
       name: map["site_name"] || SITE_NAME,
       description: map["site_description"] || SITE_DESCRIPTION,
+      mobileArticleTitleScale: parseMobileArticleTitleScale(map["mobile_article_title_scale"]),
     };
   },
   ["site-settings"],

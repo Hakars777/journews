@@ -1,13 +1,15 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FormSubmitButton } from "@/components/admin/form-submit-button";
 import { FaviconForm } from "@/components/admin/settings/favicon-form";
+import { MobileHeadlineSizeForm } from "@/components/admin/settings/mobile-headline-size-form";
 import { prisma } from "@/lib/prisma";
-import { SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
+import { MOBILE_ARTICLE_TITLE_SCALE, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
 import {
   saveFaviconAction,
   deleteFaviconAction,
   saveSiteNameAction,
   saveSiteDescriptionAction,
+  saveMobileArticleTitleScaleAction,
 } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -18,18 +20,27 @@ export default async function AdminSettingsPage({
   searchParams?: { saved?: string };
 }) {
   const rows = await prisma.siteSetting
-    .findMany({ where: { key: { in: ["favicon", "site_name", "site_description"] } } })
+    .findMany({
+      where: {
+        key: {
+          in: ["favicon", "site_name", "site_description", "mobile_article_title_scale"],
+        },
+      },
+    })
     .catch(() => []);
   const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
 
   const faviconUrl = map["favicon"] ?? null;
   const siteName = map["site_name"] ?? SITE_NAME;
   const siteDescription = map["site_description"] ?? SITE_DESCRIPTION;
+  const mobileArticleTitleScale = Number(map["mobile_article_title_scale"] ?? MOBILE_ARTICLE_TITLE_SCALE);
   const successMessage =
     searchParams?.saved === "name"
       ? "Название сайта сохранено."
       : searchParams?.saved === "description"
         ? "Описание сайта сохранено."
+        : searchParams?.saved === "mobile_title_scale"
+          ? "Размер мобильного заголовка сохранён."
         : searchParams?.saved === "favicon"
           ? "Favicon сохранён."
           : searchParams?.saved === "favicon_deleted"
@@ -86,6 +97,11 @@ export default async function AdminSettingsPage({
           </div>
         </form>
       </div>
+
+      <MobileHeadlineSizeForm
+        initialValue={Number.isFinite(mobileArticleTitleScale) ? Math.max(70, Math.min(100, Math.round(mobileArticleTitleScale))) : MOBILE_ARTICLE_TITLE_SCALE}
+        saveAction={saveMobileArticleTitleScaleAction}
+      />
 
       <FaviconForm
         initialFaviconUrl={faviconUrl}

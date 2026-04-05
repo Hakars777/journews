@@ -34,6 +34,7 @@
     --ring: 0 72% 36%;
 
     --radius: 0.5rem;
+    --jn-mobile-article-title-scale: 0.9;
 
     --chart-1: 12 76% 61%;
 
@@ -93,6 +94,20 @@
 /* A little stricter headline rhythm */
 .jn-headline {
   @apply font-serif tracking-tight;
+}
+
+.jn-article-title {
+  font-size: calc(1.875rem * var(--jn-mobile-article-title-scale, 0.9));
+  line-height: 1.06;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+@media (min-width: 640px) {
+  .jn-article-title {
+    font-size: 1.875rem;
+    line-height: 1.08;
+  }
 }
 
 /* Responsive video embed (YouTube / Vimeo) */

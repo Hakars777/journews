@@ -6,6 +6,7 @@ import { cleanupUnusedMediaUrls } from "@/lib/media-cleanup";
 import { prisma } from "@/lib/prisma";
 import { normalizeSelectedMediaUrl, saveImageUpload } from "@/lib/uploads";
 import { assertAdmin } from "@/lib/guard-actions";
+import { MOBILE_ARTICLE_TITLE_SCALE } from "@/lib/site";
 
 function revalidateSettingsPages() {
   revalidateTag("site-settings");
@@ -40,6 +41,24 @@ export async function saveSiteDescriptionAction(formData: FormData): Promise<voi
   });
   revalidateSettingsPages();
   redirect(`/admin/settings?saved=description&t=${Date.now()}`);
+}
+
+export async function saveMobileArticleTitleScaleAction(formData: FormData): Promise<void> {
+  await assertAdmin();
+
+  const raw = Number((formData.get("mobile_article_title_scale") as string | null) ?? "");
+  const value = Number.isFinite(raw)
+    ? Math.max(70, Math.min(100, Math.round(raw)))
+    : MOBILE_ARTICLE_TITLE_SCALE;
+
+  await prisma.siteSetting.upsert({
+    where: { key: "mobile_article_title_scale" },
+    update: { value: String(value) },
+    create: { key: "mobile_article_title_scale", value: String(value) },
+  });
+
+  revalidateSettingsPages();
+  redirect(`/admin/settings?saved=mobile_title_scale&t=${Date.now()}`);
 }
 
 export async function saveFaviconAction(formData: FormData): Promise<void> {

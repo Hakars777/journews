@@ -176,7 +176,7 @@ export default async function NewsPage({ params }: { params: { slug: string } })
           />
 
           <header className="mt-4 grid gap-3">
-            <h1 className="jn-headline text-3xl font-semibold leading-tight">
+            <h1 className="jn-headline jn-article-title font-semibold">
               {news.title}
             </h1>
             <p className="text-base leading-7 text-muted-foreground">{news.lead}</p>
