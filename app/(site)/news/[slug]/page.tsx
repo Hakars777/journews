@@ -17,12 +17,17 @@ import { Suspense } from "react";
 import { SiteSidebar } from "@/components/site/site-sidebar";
 import { toAbsoluteMediaUrl } from "@/lib/uploads";
 import { buildBreadcrumbJsonLd, buildCanonicalUrl, toJsonLd } from "@/lib/seo";
+import { shouldSkipBuildStaticParams } from "@/lib/build-env";
 
 // Cache individual articles for 5 min. ViewTracker is a client component
 // and still fires on every visit regardless of ISR.
 export const revalidate = 300;
 
 export async function generateStaticParams() {
+  if (shouldSkipBuildStaticParams()) {
+    return [];
+  }
+
   const articles = await prisma.news.findMany({
     where: { status: "PUBLISHED", publishedAt: { not: null } },
     orderBy: { publishedAt: "desc" },

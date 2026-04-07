@@ -10,6 +10,7 @@ import { SiteSidebar } from "@/components/site/site-sidebar";
 import { prisma } from "@/lib/prisma";
 import { getPagination, pageCount, parsePage } from "@/lib/pagination";
 import { buildCanonicalUrl } from "@/lib/seo";
+import { shouldSkipBuildStaticParams } from "@/lib/build-env";
 
 export const revalidate = 300;
 
@@ -27,6 +28,10 @@ const newsCardSelect = {
 } as const;
 
 export async function generateStaticParams() {
+  if (shouldSkipBuildStaticParams()) {
+    return [];
+  }
+
   // Pre-render first 10 pages of the homepage feed
   return Array.from({ length: 9 }, (_, i) => ({ page: String(i + 2) }));
 }

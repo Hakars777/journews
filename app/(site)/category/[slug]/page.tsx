@@ -16,12 +16,17 @@ import {
   toJsonLd,
 } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/site";
+import { shouldSkipBuildStaticParams } from "@/lib/build-env";
 
 export const revalidate = 300;
 
 const PAGE_SIZE = 12;
 
 export async function generateStaticParams() {
+  if (shouldSkipBuildStaticParams()) {
+    return [];
+  }
+
   const categories = await prisma.category.findMany({
     select: { slug: true },
   });
