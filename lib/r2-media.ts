@@ -9,6 +9,7 @@ const FREE_TIER_BYTES = 10 * 1024 * 1024 * 1024;
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif", ".svg", ".ico"]);
 const MAX_PREVIEW_ITEMS = 48;
 const MAX_FOLDER_ITEMS = 6;
+const DEFAULT_MEDIA_PICKER_PAGE_SIZE = 24;
 
 type R2Env = {
   endpoint: string;
@@ -33,6 +34,16 @@ export type MediaPreviewItem = {
   extension: string;
   isImage: boolean;
   lastModified: Date | null;
+};
+
+export type AdminMediaPickerSortMode = "newest" | "oldest" | "name-asc" | "name-desc";
+
+export type AdminMediaPickerPage = {
+  items: MediaPreviewItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
 };
 
 export type AdminMediaOverview =
@@ -117,6 +128,41 @@ function getFileExtension(key: string) {
 
 function isImageKey(key: string) {
   return IMAGE_EXTENSIONS.has(getFileExtension(key));
+}
+
+function fileNameFromKey(key: string) {
+  const parts = key.split("/");
+  return parts[parts.length - 1] || key;
+}
+
+function toTimestamp(value?: Date | string | null) {
+  if (!value) return 0;
+  const date = value instanceof Date ? value : new Date(value);
+  const timestamp = date.getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function compareMediaItems(
+  left: MediaPreviewItem,
+  right: MediaPreviewItem,
+  sortMode: AdminMediaPickerSortMode,
+) {
+  if (sortMode === "newest") {
+    return toTimestamp(right.lastModified) - toTimestamp(left.lastModified) || left.key.localeCompare(right.key);
+  }
+
+  if (sortMode === "oldest") {
+    return toTimestamp(left.lastModified) - toTimestamp(right.lastModified) || left.key.localeCompare(right.key);
+  }
+
+  const leftName = fileNameFromKey(left.key);
+  const rightName = fileNameFromKey(right.key);
+
+  if (sortMode === "name-asc") {
+    return leftName.localeCompare(rightName) || left.key.localeCompare(right.key);
+  }
+
+  return rightName.localeCompare(leftName) || left.key.localeCompare(right.key);
 }
 
 export function getFreeTierBytes() {
@@ -254,4 +300,50 @@ export const getCachedAdminMediaOverview = unstable_cache(
 export async function getCachedAdminMediaPickerItems() {
   const overview = await getCachedAdminMediaOverview();
   return overview.status === "ready" ? overview.items : [];
+}
+
+export async function getCachedAdminMediaPickerPage({
+  page = 1,
+  pageSize = DEFAULT_MEDIA_PICKER_PAGE_SIZE,
+  query = "",
+  sort = "newest",
+}: {
+  page?: number;
+  pageSize?: number;
+  query?: string;
+  sort?: AdminMediaPickerSortMode;
+} = {}): Promise<AdminMediaPickerPage> {
+  const items = await getCachedAdminMediaPickerItems();
+  const normalizedQuery = query.trim().toLowerCase();
+  const safePage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+  const safePageSize = Number.isFinite(pageSize)
+    ? Math.min(60, Math.max(1, Math.floor(pageSize)))
+    : DEFAULT_MEDIA_PICKER_PAGE_SIZE;
+
+  const filteredItems = !normalizedQuery
+    ? items
+    : items.filter((item) => {
+        const key = item.key.toLowerCase();
+        const folder = item.folder.toLowerCase();
+        const fileName = fileNameFromKey(item.key).toLowerCase();
+        return (
+          key.includes(normalizedQuery) ||
+          folder.includes(normalizedQuery) ||
+          fileName.includes(normalizedQuery)
+        );
+      });
+
+  const sortedItems =
+    sort === "newest" ? filteredItems : [...filteredItems].sort((left, right) => compareMediaItems(left, right, sort));
+
+  const start = (safePage - 1) * safePageSize;
+  const pageItems = sortedItems.slice(start, start + safePageSize);
+
+  return {
+    items: pageItems,
+    total: sortedItems.length,
+    page: safePage,
+    pageSize: safePageSize,
+    hasMore: start + safePageSize < sortedItems.length,
+  };
 }

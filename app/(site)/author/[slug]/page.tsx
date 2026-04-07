@@ -19,12 +19,17 @@ import {
 } from "@/lib/seo";
 import { getSiteSettings } from "@/lib/site";
 import { toAbsoluteMediaUrl } from "@/lib/uploads";
+import { shouldSkipBuildStaticParams } from "@/lib/build-env";
 
 export const revalidate = 300;
 
 const PAGE_SIZE = 12;
 
 export async function generateStaticParams() {
+  if (shouldSkipBuildStaticParams()) {
+    return [];
+  }
+
   const authors = await prisma.author.findMany({
     select: { slug: true },
   });

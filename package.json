@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npm run prisma:generate && node scripts/ensure-sqlite-db.mjs && npm run prisma:migrate && next build",
+    "build": "npm run prisma:generate && node scripts/ensure-sqlite-db.mjs && node scripts/prisma-migrate-build.mjs && next build",
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "node scripts/prisma.mjs generate",
