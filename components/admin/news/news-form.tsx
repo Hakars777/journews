@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-dom";
 import { toast } from "sonner";
 import { FormSubmitButton } from "@/components/admin/form-submit-button";
@@ -89,11 +89,17 @@ export function NewsForm({
   const [t, setT] = useState(initial?.title ?? "");
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [slugDirty, setSlugDirty] = useState(!!initial?.slug);
-  const [contentHtml, setContentHtml] = useState(initial?.contentHtml ?? "<p></p>");
   const [coverImage, setCoverImage] = useState(initial?.coverImage ?? "");
   const [galleryImages, setGalleryImages] = useState(initial?.galleryImages ?? []);
+  const contentInputRef = useRef<HTMLInputElement>(null);
+  const initialContentHtml = initial?.contentHtml ?? "<p></p>";
 
   const initialTagSet = useMemo(() => new Set(initial?.tagIds ?? []), [initial?.tagIds]);
+  const handleContentChange = useCallback((html: string) => {
+    if (contentInputRef.current) {
+      contentInputRef.current.value = html;
+    }
+  }, []);
 
   return (
     <div className="grid gap-6">
@@ -116,7 +122,12 @@ export function NewsForm({
       ) : null}
 
       <form action={formAction} className="grid gap-6">
-        <input type="hidden" name="contentHtml" value={contentHtml} />
+        <input
+          ref={contentInputRef}
+          type="hidden"
+          name="contentHtml"
+          defaultValue={initialContentHtml}
+        />
         <input type="hidden" name="selectedCoverUrl" value={coverImage} />
         {galleryImages.map((src) => (
           <input key={src} type="hidden" name="selectedGalleryUrls" value={src} />
@@ -183,7 +194,7 @@ export function NewsForm({
 
             <div className="grid gap-2">
               <Label>Контент *</Label>
-              <RichTextEditor initialHtml={contentHtml} onChange={setContentHtml} />
+              <RichTextEditor initialHtml={initialContentHtml} onChange={handleContentChange} />
               {state.fieldErrors?.contentHtml?.length ? (
                 <p className="text-xs text-destructive">{state.fieldErrors.contentHtml[0]}</p>
               ) : null}
